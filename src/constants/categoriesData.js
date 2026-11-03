@@ -1,20 +1,20 @@
 export const marketplaceCategories = [
   {
+    id: 'all-categories',
+    label: 'All Categories',
+    shortDesc: 'Properties, automobiles, electronics & comfort living',
+    href: '/categories',
+    icon: 'fa-solid fa-shapes',
+    image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=600&q=80',
+    disabled: false,
+  },
+  {
     id: 'properties',
     label: 'Properties',
     shortDesc: 'Houses, flats, lands, plots & commercial',
     href: '/categories/properties',
     icon: 'fa-solid fa-house-chimney',
     image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=600&q=80',
-    disabled: false,
-  },
-  {
-    id: 'jewellery',
-    label: 'Jewellery',
-    shortDesc: 'Hallmarked gold, certified diamonds & silver',
-    href: '/categories/jewellery',
-    icon: 'fa-solid fa-gem',
-    image: 'https://images.pexels.com/photos/28933800/pexels-photo-28933800.jpeg?cs=srgb&dl=pexels-vedat-28933800.jpg&fm=jpg',
     disabled: false,
   },
   {

@@ -611,8 +611,8 @@ function BangalorePropertyPieMap({ properties = [], activeZone, onSelectZone }) 
                   <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-brand-blue/10 text-brand-blue">
                     {hoveredProperty.bhk || hoveredProperty.propertyType || 'Property'}
                   </span>
-                  <span className="text-xs font-extrabold text-brand-blue">
-                    {formatPropertyDisplayPrice(hoveredProperty).price} {formatPropertyDisplayPrice(hoveredProperty).priceSuffix}
+                  <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                    Verified Deal
                   </span>
                 </div>
                 <h4 className="text-xs font-bold text-brand-charcoal truncate mt-1">

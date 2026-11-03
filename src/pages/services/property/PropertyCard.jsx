@@ -124,36 +124,16 @@ function PropertyCardImpl({ property }) {
           </h3>
         </div>
 
-        {/* Price */}
-        <div className="min-h-[1.5rem] my-1">
-          {isSoldOut ? (
-            <p className="text-sm font-bold text-red-600">Sold Out</p>
-          ) : property.priceType === 'on-request' ? (
-            <p className="text-base font-extrabold text-brand-gold">Price on Request</p>
-          ) : (
-            display.price != null && display.price !== '' && (
-              <p className="text-base font-extrabold text-brand-blue">
-                {display.price === 'This is negotiable'
-                  ? display.price
-                  : typeof display.price === 'number' ||
-                    (typeof display.price === 'string' &&
-                      /^\d/.test(display.price.replace(/[₹,\s]/g, '')))
-                  ? formatINR(display.price)
-                  : withRupeeSymbol(display.price)}
-                {display.priceSuffix && (
-                  <span className="text-xs font-normal text-gray-400 ml-1">
-                    {display.priceSuffix}
-                  </span>
-                )}
-                {property.priceType === 'negotiable' && display.price !== 'This is negotiable' && (
-                  <span className="ml-1.5 text-[9px] font-bold text-brand-gold bg-brand-gold/10 px-2 py-0.5 rounded-full">
-                    Negotiable
-                  </span>
-                )}
-              </p>
-            )
-          )}
-        </div>
+        {/* Status / Sold Out */}
+        {(isSoldOut || isInactive) && (
+          <div className="min-h-[1.5rem] my-1">
+            {isSoldOut ? (
+              <p className="text-sm font-bold text-red-600">Sold Out</p>
+            ) : (
+              <p className="text-sm font-bold text-amber-600">Inactive</p>
+            )}
+          </div>
+        )}
 
         {/* Location */}
         {(property.location || property.city || property.address) && !isSoldOut && !isInactive && (
@@ -171,9 +151,9 @@ function PropertyCardImpl({ property }) {
             {cardTags.map((t, i) => (
               <span
                 key={i}
-                className="bg-gray-100/80 rounded-md px-2 py-0.5 font-medium whitespace-nowrap"
+                className="bg-gray-100/80 rounded-md px-2 py-0.5 font-medium max-w-full inline-flex items-center truncate"
               >
-                {t}
+                <span className="truncate">{t}</span>
               </span>
             ))}
           </div>
@@ -211,13 +191,24 @@ function PropertyCardImpl({ property }) {
           </div>
         )}
 
-        {/* View Details / Status */}
+        {/* Action Button / Status */}
         {!isSoldOut && !isInactive ? (
           <div className="mt-auto pt-3">
-            <div className="w-full rounded-xl bg-gray-50 border border-gray-100 group-hover:bg-brand-blue group-hover:text-white group-hover:border-brand-blue text-brand-charcoal text-center text-xs font-bold py-2.5 transition-all duration-200 flex items-center justify-center gap-1.5 shadow-xs">
-              <span>View Details</span>
-              <i className="fa-solid fa-arrow-right text-[10px] group-hover:translate-x-0.5 transition-transform" />
-            </div>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                window.dispatchEvent(
+                  new CustomEvent('onevishwam:open_enquiry_modal', {
+                    detail: { title: title || 'Property Enquiry' },
+                  })
+                );
+              }}
+              className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 px-4 py-2.5 text-xs sm:text-sm font-extrabold transition-all shadow-xs hover:shadow-md cursor-pointer active:scale-[0.98]"
+            >
+              <i className="fa-solid fa-handshake-angle text-xs text-slate-950" />
+              <span>Are You Interested?</span>
+            </button>
           </div>
         ) : (
           <div className="mt-auto pt-3 text-center">

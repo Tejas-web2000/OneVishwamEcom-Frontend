@@ -8,6 +8,7 @@ import { detectCurrentLocation } from '../utils/detectLocation';
 import { PROPERTIES_ONLY } from '../config/appConfig';
 import { Link, useLocation as useRouterLocation } from 'react-router-dom';
 import TopNotificationBar from './TopNotificationBar';
+import ListingRedirectModal from './modals/ListingRedirectModal';
 import { useAuth } from '../store/authSlice';
 import Swal from 'sweetalert2';
 
@@ -21,14 +22,23 @@ const CATEGORY_THEMES = {
     hoverBorder: 'hover:border-blue-300',
     hoverText: 'group-hover:text-blue-600',
   },
-  jewellery: {
-    gradient: 'from-amber-500 to-yellow-600',
-    shadow: 'shadow-amber-500/25',
-    badgeText: 'text-amber-800',
-    badgeBg: 'bg-amber-50 border-amber-200',
-    tag: 'Gold · Diamonds · Silver',
-    hoverBorder: 'hover:border-amber-300',
-    hoverText: 'group-hover:text-amber-600',
+  'all-categories': {
+    gradient: 'from-rose-500 to-red-600',
+    shadow: 'shadow-rose-500/25',
+    badgeText: 'text-rose-700',
+    badgeBg: 'bg-rose-50 border-rose-100',
+    tag: 'All Categories & Ecosystem',
+    hoverBorder: 'hover:border-rose-300',
+    hoverText: 'group-hover:text-rose-600',
+  },
+  'all-services': {
+    gradient: 'from-rose-500 to-red-600',
+    shadow: 'shadow-rose-500/25',
+    badgeText: 'text-rose-700',
+    badgeBg: 'bg-rose-50 border-rose-100',
+    tag: 'All Categories & Ecosystem',
+    hoverBorder: 'hover:border-rose-300',
+    hoverText: 'group-hover:text-rose-600',
   },
   automobile: {
     gradient: 'from-emerald-500 to-teal-600',
@@ -62,6 +72,7 @@ const CATEGORY_THEMES = {
 function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileCategoryOpen, setMobileCategoryOpen] = useState(false);
+  const [showListingModal, setShowListingModal] = useState(false);
   const currentLocation = useRouterLocation();
   const [scrolled, setScrolled] = useState(false);
   const [openDropdown, setOpenDropdown] = useState(null); // 'categories', 'more', 'location', or null
@@ -454,7 +465,7 @@ function Navbar() {
                             Marketplace Categories
                           </span>
                           <span className="text-[10px] font-semibold text-slate-500 bg-white px-2 py-0.5 rounded-full border border-slate-200">
-                            4 Active
+                            {marketplaceCategories.length} Active
                           </span>
                         </div>
                         <Link
@@ -538,7 +549,15 @@ function Navbar() {
                 )}
               </div>
 
-
+              {/* Want to list an item? Button */}
+              <button
+                type="button"
+                onClick={() => setShowListingModal(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-bold text-amber-800 bg-amber-50 hover:bg-amber-100/90 border border-amber-300/80 rounded-full transition-all shadow-2xs hover:shadow-xs hover:-translate-y-0.5 cursor-pointer ml-1"
+              >
+                <i className="fa-solid fa-circle-plus text-amber-600 text-xs" />
+                <span>Want to list an item?</span>
+              </button>
             </nav>
 
             <div className="hidden lg:flex items-center gap-3">
@@ -783,8 +802,32 @@ function Navbar() {
               </div>
             )}
           </div>
+
+          {/* Want to list an item? Mobile CTA */}
+          <div className="pt-2">
+            <button
+              type="button"
+              onClick={() => {
+                setMenuOpen(false);
+                setShowListingModal(true);
+              }}
+              className="flex items-center justify-between w-full px-4 py-3 rounded-xl text-sm font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-300/80 transition-all text-left shadow-2xs cursor-pointer"
+            >
+              <span className="flex items-center gap-2">
+                <i className="fa-solid fa-circle-plus text-amber-600" />
+                <span>Want to list an item?</span>
+              </span>
+              <i className="fa-solid fa-arrow-up-right-from-square text-xs text-amber-600" />
+            </button>
+          </div>
         </nav>
       </div>
+
+      {/* Listing Redirect Confirmation Modal */}
+      <ListingRedirectModal
+        isOpen={showListingModal}
+        onClose={() => setShowListingModal(false)}
+      />
     </>
   );
 }

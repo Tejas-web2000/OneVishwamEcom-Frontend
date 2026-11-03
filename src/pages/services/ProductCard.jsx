@@ -142,42 +142,56 @@ export default React.memo(function ProductCard({
         )}
 
         {/* Specs / Detail Tags (Homez style metadata) */}
-        {tags.length > 0 && (
-          <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
-            {tags.map((t, i) => {
-              if (!t) return null;
-              const tStr = String(t).trim();
-              const isPropType = isPropertyOrVehicle && ['flat', 'plot', 'land', 'independent house', 'residential', 'commercial', 'industrial', 'agricultural', 'villa', 'apartment'].some(type => tStr.toLowerCase() === type);
-              const isFacing = tStr.startsWith('Door Facing') || tStr.startsWith('Facing');
-              const isCorner = tStr.startsWith('Corner');
-              const isBhk = /\d+\s*bhk/i.test(tStr);
-              const isSqft = /sq\.?ft|sqft|sq\s*ft/i.test(tStr);
-              const isBath = /bath/i.test(tStr);
-              return (
-                <span
-                  key={i}
-                  className={`font-semibold text-xs rounded-lg px-2.5 py-1 whitespace-nowrap flex items-center gap-1.5 ${
-                    isPropType
-                      ? 'bg-blue-50 text-brand-blue border border-blue-200/80 font-bold shadow-2xs'
-                      : isCorner
-                      ? 'bg-purple-50 text-purple-800 border border-purple-200/80 shadow-2xs'
-                      : isFacing
-                      ? 'bg-amber-50 text-amber-800 border border-amber-200/80 shadow-2xs'
-                      : 'bg-slate-100 text-slate-700'
-                  }`}
-                >
-                  {isPropType && <i className="fa-solid fa-house-chimney text-brand-blue text-[11px]" />}
-                  {isCorner && <i className="fa-solid fa-vector-square text-purple-600 text-xs" />}
-                  {isFacing && <i className="fa-solid fa-compass text-amber-600 text-xs" />}
-                  {isBhk && <i className="fa-solid fa-bed text-brand-blue text-[11px]" />}
-                  {isSqft && <i className="fa-solid fa-ruler-combined text-brand-blue text-[11px]" />}
-                  {isBath && <i className="fa-solid fa-shower text-brand-blue text-[11px]" />}
-                  {t}
-                </span>
-              );
-            })}
-          </div>
-        )}
+        {tags.length > 0 && (() => {
+          const splitTags = tags.flatMap((t) => {
+            if (!t) return [];
+            const str = String(t).trim();
+            if (/[\u00b7\u2022\u2219\u2027\u25cf\u25cb\u2043\u2218•·|]/.test(str)) {
+              return str.split(/\s*[\u00b7\u2022\u2219\u2027\u25cf\u25cb\u2043\u2218•·|]\s*/).map((s) => s.trim()).filter(Boolean);
+            }
+            return [str];
+          });
+          return (
+            <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+              {splitTags.map((t, i) => {
+                if (!t) return null;
+                const tStr = String(t).trim();
+                const isPropType = isPropertyOrVehicle && ['flat', 'plot', 'land', 'independent house', 'residential', 'commercial', 'industrial', 'agricultural', 'villa', 'apartment'].some(type => tStr.toLowerCase() === type);
+                const isFacing = tStr.startsWith('Door Facing') || tStr.startsWith('Facing');
+                const isCorner = tStr.startsWith('Corner');
+                const isBhk = /\d+\s*bhk/i.test(tStr);
+                const isSqft = /sq\.?ft|sqft|sq\s*ft|acres?|guntas?/i.test(tStr);
+                const isUnits = /\b\d+\s*units?\b/i.test(tStr);
+                const isBath = /bath/i.test(tStr);
+                return (
+                  <span
+                    key={i}
+                    className={`font-semibold text-xs rounded-lg px-2.5 py-1 max-w-full inline-flex items-center gap-1.5 ${
+                      isPropType
+                        ? 'bg-blue-50 text-brand-blue border border-blue-200/80 font-bold shadow-2xs'
+                        : isCorner
+                        ? 'bg-purple-50 text-purple-800 border border-purple-200/80 shadow-2xs'
+                        : isFacing
+                        ? 'bg-amber-50 text-amber-800 border border-amber-200/80 shadow-2xs'
+                        : isUnits
+                        ? 'bg-emerald-50 text-emerald-800 border border-emerald-200/80 shadow-2xs'
+                        : 'bg-slate-100 text-slate-700'
+                    }`}
+                  >
+                    {isPropType && <i className="fa-solid fa-house-chimney text-brand-blue text-[11px] shrink-0" />}
+                    {isCorner && <i className="fa-solid fa-vector-square text-purple-600 text-xs shrink-0" />}
+                    {isFacing && <i className="fa-solid fa-compass text-amber-600 text-xs shrink-0" />}
+                    {isBhk && <i className="fa-solid fa-bed text-brand-blue text-[11px] shrink-0" />}
+                    {isSqft && <i className="fa-solid fa-ruler-combined text-brand-blue text-[11px] shrink-0" />}
+                    {isUnits && <i className="fa-solid fa-building text-emerald-600 text-[11px] shrink-0" />}
+                    {isBath && <i className="fa-solid fa-shower text-brand-blue text-[11px] shrink-0" />}
+                    <span className="truncate">{t}</span>
+                  </span>
+                );
+              })}
+            </div>
+          );
+        })()}
 
         {/* Trust Badge (e.g. Bank Approved) */}
         {trustBadge && (
@@ -196,57 +210,23 @@ export default React.memo(function ProductCard({
         {/* Extra children (Agent info, Loan banners, etc.) */}
         {children && <div className="pt-1">{children}</div>}
 
-        {/* ── Card Footer: Are You Interested? / Price ── */}
+        {/* ── Card Footer: Are You Interested? ── */}
         <div className="mt-auto pt-3 border-t border-gray-100 flex items-center justify-between gap-2">
-          {isPropertyOrVehicle ? (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                window.dispatchEvent(
-                  new CustomEvent('onevishwam:open_enquiry_modal', {
-                    detail: { title: title || 'Property / Vehicle Enquiry' },
-                  })
-                );
-              }}
-              className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 px-4 py-2.5 text-xs sm:text-sm font-extrabold transition-all shadow-xs hover:shadow-md cursor-pointer active:scale-[0.98]"
-            >
-              <i className="fa-solid fa-handshake-angle text-xs text-slate-950" />
-              <span>Are You Interested?</span>
-            </button>
-          ) : (
-            <>
-              <div className="min-w-0">
-                {priceOverride ? (
-                  priceOverride
-                ) : (
-                  price && (
-                    <div>
-                      <span
-                        className={`leading-tight block truncate ${
-                          String(price).trim().toLowerCase() === 'this is negotiable'
-                            ? 'text-sm font-normal text-gray-500'
-                            : 'text-base sm:text-lg font-extrabold text-brand-charcoal'
-                        }`}
-                      >
-                        {price}
-                      </span>
-                      {priceSuffix && (
-                        <span className="text-[11px] font-medium text-gray-500 block truncate">
-                          {priceSuffix}
-                        </span>
-                      )}
-                    </div>
-                  )
-                )}
-              </div>
-
-              <div className="inline-flex items-center gap-1 text-xs sm:text-sm font-bold text-brand-blue group-hover:text-brand-navy transition-colors shrink-0">
-                <span>View Details</span>
-                <i className="fa-solid fa-arrow-right text-[10px] group-hover:translate-x-0.5 transition-transform" />
-              </div>
-            </>
-          )}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              window.dispatchEvent(
+                new CustomEvent('onevishwam:open_enquiry_modal', {
+                  detail: { title: title || 'Product Enquiry' },
+                })
+              );
+            }}
+            className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 px-4 py-2.5 text-xs sm:text-sm font-extrabold transition-all shadow-xs hover:shadow-md cursor-pointer active:scale-[0.98]"
+          >
+            <i className="fa-solid fa-handshake-angle text-xs text-slate-950" />
+            <span>Are You Interested?</span>
+          </button>
         </div>
       </div>
     </div>

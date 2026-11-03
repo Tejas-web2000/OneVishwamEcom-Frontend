@@ -5,12 +5,11 @@ import { serviceItems, serviceIconMap } from '../../constants/servicesContent';
 import PageHero from '../../components/PageHero';
 import API from '../../services/api';
 
-const ACTIVE_SERVICE_IDS = ['properties', 'jewellery-gold', 'automobile', 'consumer-electronics', 'bedding-comfort'];
+const ACTIVE_SERVICE_IDS = ['properties', 'automobile', 'consumer-electronics', 'bedding-comfort'];
 
 const CATEGORY_TABS = [
   { id: 'all', label: 'All Products' },
   { id: 'properties', label: 'Properties' },
-  { id: 'jewellery', label: 'Jewellery' },
   { id: 'automobile', label: 'Automobiles' },
   { id: 'consumer-electronics', label: 'Electronics' },
   { id: 'bedding-comfort', label: 'Comfort' },
@@ -19,7 +18,6 @@ const CATEGORY_TABS = [
 
 const CATEGORY_BADGES = {
   properties: 'bg-blue-50 text-blue-700 border border-blue-200',
-  jewellery: 'bg-amber-50 text-amber-700 border border-amber-200',
   automobile: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
   vehicles: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
   'consumer-electronics': 'bg-purple-50 text-purple-700 border border-purple-200',
@@ -199,11 +197,11 @@ function ServicesPage() {
                       </div>
 
                       <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-                        <span className="text-sm font-black text-amber-600">
-                          {item.price}
+                        <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">
+                          Verified Listing
                         </span>
                         <span className="text-xs font-bold text-brand-blue group-hover:translate-x-0.5 transition-transform flex items-center gap-1">
-                          <span>View</span>
+                          <span>View Details</span>
                           <i className="fa-solid fa-arrow-right text-[10px]" />
                         </span>
                       </div>

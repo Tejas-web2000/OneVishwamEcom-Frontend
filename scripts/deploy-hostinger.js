@@ -140,6 +140,22 @@ function formatDuration(ms) {
 }
 
 // ─── Directory & Asset Inspection ────────────────────────────────────────────
+function getFileList(dir, base = '') {
+  let results = [];
+  const list = fs.readdirSync(dir);
+  for (const item of list) {
+    const full = path.join(dir, item);
+    const rel = base ? `${base}/${item}` : item;
+    const stat = fs.statSync(full);
+    if (stat.isDirectory()) {
+      results = results.concat(getFileList(full, rel));
+    } else {
+      results.push({ fullPath: full, relPath: rel, size: stat.size });
+    }
+  }
+  return results;
+}
+
 function scanDirectory(dir) {
   let count = 0;
   let size = 0;
@@ -327,50 +343,25 @@ async function deploy() {
   spinner.succeed(`Hostinger credentials authenticated for ${C.brightCyan}${USER}${C.reset}`);
 
   // ── STEP 3: Connect to Hostinger FTP ──
-  const client = new ftp.Client();
+  const client = new ftp.Client(60000);
   client.ftp.verbose = false;
+  client.prepareTransfer = ftp.enterPassiveModeIPv4;
 
   spinner.start(`Connecting to Hostinger server (${HOST}:${PORT})...`);
 
   try {
-    try {
-      spinner.update(`Negotiating secure TLS/FTPS handshake with ${HOST}...`);
-      await client.access({
-        host: HOST,
-        user: USER,
-        password: PASSWORD,
-        port: PORT,
-        secure: true,
-        secureOptions: { rejectUnauthorized: false },
-      });
-      spinner.succeed(`Secure TLS (FTPS) tunnel established with ${C.brightCyan}${HOST}${C.reset}`);
-    } catch {
-      spinner.warn('TLS handshake failed, falling back to standard FTP...');
-      spinner.start(`Connecting via standard FTP to ${HOST}:${PORT}...`);
-      await client.access({
-        host: HOST,
-        user: USER,
-        password: PASSWORD,
-        port: PORT,
-        secure: false,
-      });
-      spinner.succeed(`Standard FTP connection established with ${C.brightCyan}${HOST}${C.reset}`);
-    }
+    await client.access({
+      host: HOST,
+      user: USER,
+      password: PASSWORD,
+      port: PORT,
+      secure: false,
+    });
+    spinner.succeed(`FTP connection established with ${C.brightCyan}${HOST}${C.reset}`);
 
     // ── STEP 4: Resolve Remote Path ──
     spinner.start('Resolving target remote directory on Hostinger server...');
-    await client.cd('/');
-
-    let targetDir = (REMOTE_DIR || '').replace(/^\/+/, '').replace(/\/+$/, '');
-    const rootList = await client.list('/');
-    if (rootList.some((f) => f.name === 'domains')) {
-      const domainsList = await client.list('/domains');
-      const domainMatch = domainsList.find((d) => d.name === 'onevishwam.com') || domainsList[0];
-      if (domainMatch && !targetDir.startsWith('domains/')) {
-        targetDir = `domains/${domainMatch.name}/public_html`;
-      }
-    }
-
+    const targetDir = (REMOTE_DIR || 'domains/onevishwam.com/public_html').replace(/^\/+/, '').replace(/\/+$/, '');
     await client.ensureDir(`/${targetDir}`);
     await client.cd(`/${targetDir}`);
     spinner.succeed(`Target directory ready: ${C.brightMagenta}/${targetDir}${C.reset}`);
@@ -386,71 +377,71 @@ async function deploy() {
     const pulseFrames = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
     let pulseIdx = 0;
 
-    // Hook basic-ftp progress tracker
-    client.trackProgress((info) => {
-      if (info.name) {
-        currentFileName = path.basename(info.name);
-      }
-      if (typeof info.bytesOverall === 'number') {
-        const now = Date.now();
-        const deltaTime = (now - lastTime) / 1000;
+    // ── STEP 5: Ultra-Reliable Zip Archive Streaming ──
+    const zipPath = path.resolve(__dirname, '../deploy.zip');
+    spinner.start('Compressing production build into high-speed deployment archive...');
+    const { execSync } = await import('child_process');
+    try { fs.unlinkSync(zipPath); } catch {}
+    execSync(`zip -r -q "${zipPath}" .`, { cwd: distDir });
+    const zipStats = fs.statSync(zipPath);
+    spinner.succeed(`Build archive compressed (${C.brightCyan}${formatBytes(zipStats.size)}${C.reset} from ${formatBytes(totalBytes)})`);
 
-        if (deltaTime >= 0.25) {
-          const deltaBytes = info.bytesOverall - lastBytes;
-          const instantSpeed = deltaBytes / deltaTime;
-          smoothedSpeed = smoothedSpeed === 0 ? instantSpeed : smoothedSpeed * 0.65 + instantSpeed * 0.35;
-          lastBytes = info.bytesOverall;
-          lastTime = now;
-        }
+    const extractToken = 'ov_deploy_' + Date.now();
+    const extractPhpContent = `<?php
+$secret = '${extractToken}';
+if (!isset($_GET['token']) || $_GET['token'] !== $secret) {
+    http_response_code(403);
+    die('Forbidden');
+}
+$zipFile = __DIR__ . '/deploy.zip';
+if (!file_exists($zipFile)) {
+    http_response_code(404);
+    die('ZIP_NOT_FOUND');
+}
+$zip = new ZipArchive;
+if ($zip->open($zipFile) === TRUE) {
+    $zip->extractTo(__DIR__);
+    $zip->close();
+    @unlink($zipFile);
+    @unlink(__FILE__);
+    echo 'DEPLOY_SUCCESS';
+} else {
+    http_response_code(500);
+    echo 'ZIP_EXTRACTION_FAILED';
+}
+?>`;
+    const extractPhpPath = path.resolve(__dirname, '../extract.php');
+    fs.writeFileSync(extractPhpPath, extractPhpContent);
 
-        uploadedBytes = info.bytesOverall;
-      }
+    spinner.start(`Streaming deployment archive to Hostinger...`);
+    await client.uploadFrom(zipPath, 'deploy.zip');
+    await client.uploadFrom(extractPhpPath, 'extract.php');
+    client.close();
+    spinner.succeed(`Archive uploaded to Hostinger (${C.brightGreen}${formatBytes(zipStats.size)}${C.reset})`);
+
+    // Clean up local temp files
+    try { fs.unlinkSync(zipPath); } catch {}
+    try { fs.unlinkSync(extractPhpPath); } catch {}
+
+    spinner.start('Triggering atomic extraction on Hostinger server...');
+    await new Promise((resolve, reject) => {
+      https.get(`https://onevishwam.com/extract.php?token=${extractToken}`, (res) => {
+        let body = '';
+        res.on('data', (c) => body += c);
+        res.on('end', () => {
+          if (body.includes('DEPLOY_SUCCESS')) {
+            spinner.succeed(`Atomic deployment extraction completed on Hostinger server!`);
+            resolve();
+          } else {
+            spinner.warn(`Extraction responded with: ${body || res.statusCode}`);
+            resolve();
+          }
+        });
+      }).on('error', (err) => {
+        spinner.warn(`Extraction trigger notice: ${err.message}`);
+        resolve();
+      });
     });
-
-    process.stdout.write('\x1b[?25l'); // Hide cursor
-
-    // Dedicated high-speed render tick loop (35ms = ~28 FPS) ensures continuous smooth animation
-    const renderInterval = setInterval(() => {
-      pulseIdx = (pulseIdx + 1) % pulseFrames.length;
-      const spinChar = pulseFrames[pulseIdx];
-
-      const ratio = totalBytes > 0 ? Math.min(1, uploadedBytes / totalBytes) : 0;
-      const bar = renderLiquidBar(ratio, 18);
-      const transferred = `${formatBytes(uploadedBytes)} / ${formatBytes(totalBytes)}`;
-
-      const speedStr = smoothedSpeed > 100 ? `${formatBytes(smoothedSpeed)}/s` : '--';
-      const remainingBytes = Math.max(0, totalBytes - uploadedBytes);
-      const eta = smoothedSpeed > 500 ? `${Math.ceil(remainingBytes / smoothedSpeed)}s` : '--';
-
-      // Keep line within terminal boundary so it NEVER wraps or creates duplicate lines
-      const termCols = process.stdout.columns || 80;
-      const prefix = `  ${C.brightCyan}${spinChar}${C.reset} ${bar} ${C.dim}|${C.reset} ${C.bold}${transferred}${C.reset} ${C.dim}|${C.reset} ${C.cyan}${speedStr}${C.reset} ${C.dim}(ETA: ${eta})${C.reset} ${C.dim}→${C.reset} `;
-
-      const visiblePrefixLen = stripAnsi(prefix).length;
-      const maxFileLen = Math.max(12, termCols - visiblePrefixLen - 3);
-
-      let displayFile = currentFileName;
-      if (displayFile.length > maxFileLen) {
-        const half = Math.floor((maxFileLen - 3) / 2);
-        displayFile = displayFile.slice(0, half) + '...' + displayFile.slice(-half);
-      }
-
-      const output = `${prefix}${C.yellow}${displayFile}${C.reset}`;
-      process.stdout.write(`\r\x1b[2K${output}`);
-    }, 45);
-
-    // Upload files
-    await client.uploadFromDir(distDir);
-
-    // Stop render loop
-    clearInterval(renderInterval);
-    process.stdout.write('\x1b[?25h'); // Restore cursor
-
-    // Final clean 100% line
-    const completeBar = renderLiquidBar(1, 18);
-    process.stdout.write(
-      `\r\x1b[2K  ${C.brightGreen}✔${C.reset} ${completeBar} ${C.dim}|${C.reset} ${C.bold}${formatBytes(totalBytes)} / ${formatBytes(totalBytes)}${C.reset} ${C.dim}|${C.reset} ${C.brightGreen}100% COMPLETE${C.reset}\n\n`
-    );
 
     // ── STEP 6: Live Website Verification Ping ──
     spinner.start('Pinging https://onevishwam.com to verify live deployment...');

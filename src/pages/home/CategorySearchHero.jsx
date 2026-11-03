@@ -5,9 +5,8 @@ import { useLocation } from '../../store/locationSlice';
 import { matchesSearch } from '../../utils/searchUtils';
 
 const CATEGORY_TABS = [
-  { id: 'all',                    label: 'All',          icon: 'fa-solid fa-layer-group' },
+  { id: 'all',                    label: 'All Categories', icon: 'fa-solid fa-shapes',         href: '/categories' },
   { id: 'properties',             label: 'Properties',   icon: 'fa-solid fa-house-chimney', href: '/categories/properties' },
-  { id: 'jewellery',              label: 'Jewellery',    icon: 'fa-solid fa-gem',            href: '/categories/jewellery' },
   { id: 'automobile',             label: 'Automobiles',  icon: 'fa-solid fa-car',            href: '/categories/automobile' },
   { id: 'consumer-electronics',   label: 'Electronics',  icon: 'fa-solid fa-tv',             href: '/categories/consumer-electronics' },
   { id: 'bedding-comfort',        label: 'Comfort',      icon: 'fa-solid fa-bed',            href: '/categories/bedding-comfort' },
@@ -16,7 +15,7 @@ const CATEGORY_TABS = [
 
 const POPULAR_CHIPS = [
   'Gated Plots Bengaluru',
-  'Gold Necklace 22K',
+  'Commercial Spaces',
   'Maruti Brezza',
   'Orthopedic Mattress',
   '5 Star AC',
@@ -25,7 +24,6 @@ const POPULAR_CHIPS = [
 
 const BADGE_CLS = {
   Properties:       'bg-blue-100 text-blue-800 border-blue-200',
-  Jewellery:        'bg-amber-100 text-amber-800 border-amber-200',
   Automobiles:      'bg-emerald-100 text-emerald-800 border-emerald-200',
   Vehicles:         'bg-emerald-100 text-emerald-800 border-emerald-200',
   Electronics:      'bg-rose-100 text-rose-800 border-rose-200',

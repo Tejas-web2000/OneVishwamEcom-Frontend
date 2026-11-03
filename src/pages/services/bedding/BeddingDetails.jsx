@@ -161,7 +161,7 @@ export default function BeddingDetails({ item: directItem = null, similarItems: 
         </label>
         {currentVariant && (
           <span className="text-[11px] font-extrabold text-emerald-700 bg-emerald-100/70 border border-emerald-300/80 px-2.5 py-0.5 rounded-full">
-            Offer: {currentVariant.price}
+            Verified Offer
           </span>
         )}
       </div>
@@ -175,7 +175,7 @@ export default function BeddingDetails({ item: directItem = null, similarItems: 
         >
           {variants.map((v, idx) => (
             <option key={idx} value={idx}>
-              {v.name} — {v.price} (MRP: {v.mrp})
+              {v.name}
             </option>
           ))}
         </select>
@@ -192,13 +192,13 @@ export default function BeddingDetails({ item: directItem = null, similarItems: 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 pb-5">
         <div>
           <span className="text-xs font-bold text-brand-blue uppercase tracking-wider">
-            Available Dimensions & Pricing
+            Available Dimensions & Sizes
           </span>
           <h3 className="text-lg sm:text-xl font-bold text-brand-charcoal mt-1">
             Choose Your Mattress Size
           </h3>
           <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
-            Prices include free doorstep delivery, zero cost EMI, and official brand warranty.
+            Includes free doorstep delivery, dedicated support, and official brand warranty.
           </p>
         </div>
 
@@ -206,8 +206,8 @@ export default function BeddingDetails({ item: directItem = null, similarItems: 
           <span className="text-[11px] font-semibold text-gray-400 block uppercase">
             Active Size: {currentVariant.name}
           </span>
-          <span className="text-xl sm:text-2xl font-black text-brand-blue">
-            {currentVariant.price}
+          <span className="text-sm font-extrabold text-brand-blue block mt-1">
+            Price on Request
           </span>
           <span className="text-xs font-extrabold text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-md inline-block mt-1">
             {currentVariant.discount || 'Special Offer'}
@@ -229,8 +229,8 @@ export default function BeddingDetails({ item: directItem = null, similarItems: 
                 <th className="py-3 px-4">Size Option</th>
                 <th className="py-3 px-3">Dimensions</th>
                 <th className="py-3 px-3">Thickness / Fit</th>
-                <th className="py-3 px-3 text-gray-400">MRP</th>
-                <th className="py-3 px-4 text-brand-charcoal">Special Price</th>
+                <th className="py-3 px-3 text-gray-500">Warranty</th>
+                <th className="py-3 px-4 text-emerald-700">Availability</th>
                 <th className="py-3 px-3 text-right">Action</th>
               </tr>
             </thead>
@@ -262,8 +262,8 @@ export default function BeddingDetails({ item: directItem = null, similarItems: 
                     <td className="py-3 px-3">
                       <span className="text-gray-600">{v.thickness || '—'}</span>
                     </td>
-                    <td className="py-3 px-3 line-through text-gray-400">{v.mrp}</td>
-                    <td className="py-3 px-4 font-extrabold text-brand-charcoal">{v.price}</td>
+                    <td className="py-3 px-3 text-gray-600">{v.warranty || 'Brand Warranty'}</td>
+                    <td className="py-3 px-4 font-extrabold text-emerald-700">In Stock</td>
                     <td className="py-3 px-3 text-right">
                       {isSelected ? (
                         <span className="rounded-lg bg-emerald-600 text-white px-2.5 py-1 text-[10px] font-extrabold inline-flex items-center gap-1 shadow-2xs">

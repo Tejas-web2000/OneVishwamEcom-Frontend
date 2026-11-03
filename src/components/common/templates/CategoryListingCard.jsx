@@ -286,55 +286,23 @@ export default React.memo(function CategoryListingCard({
           </div>
         )}
 
-        {/* ── Card Footer: Are You Interested? / Price ── */}
+        {/* ── Card Footer: Are You Interested? ── */}
         <div className="mt-auto pt-3 border-t border-gray-100 flex items-center justify-between gap-2">
-          {shouldHidePrice ? (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                window.dispatchEvent(
-                  new CustomEvent('onevishwam:open_enquiry_modal', {
-                    detail: { title: cardTitle || item?.title || 'Property / Vehicle Enquiry' },
-                  })
-                );
-              }}
-              className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 px-4 py-2.5 text-xs sm:text-sm font-extrabold transition-all shadow-xs hover:shadow-md cursor-pointer active:scale-[0.98]"
-            >
-              <i className="fa-solid fa-handshake-angle text-xs text-slate-950" />
-              <span>Are You Interested?</span>
-            </button>
-          ) : (
-            <>
-              {/* Price */}
-              <div className="min-w-0">
-                <span
-                  className={`leading-tight block truncate ${
-                    String(cardPrice).trim().toLowerCase() === 'this is negotiable'
-                      ? 'text-sm font-normal text-gray-500'
-                      : 'text-base sm:text-lg font-extrabold text-brand-charcoal'
-                  }`}
-                >
-                  {cardPrice}
-                </span>
-                {cardPriceSuffix && (
-                  <span className="text-xs font-semibold text-gray-400 block truncate">
-                    {cardPriceSuffix}
-                  </span>
-                )}
-              </div>
-
-              {/* Right Action / "View Details →" */}
-              {children ? (
-                <div>{children}</div>
-              ) : (
-                <div className="inline-flex items-center gap-1 text-xs sm:text-sm font-bold text-brand-blue group-hover:text-brand-navy transition-colors shrink-0">
-                  <span>View Details</span>
-                  <i className="fa-solid fa-arrow-right text-[10px] group-hover:translate-x-0.5 transition-transform" />
-                </div>
-              )}
-            </>
-          )}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              window.dispatchEvent(
+                new CustomEvent('onevishwam:open_enquiry_modal', {
+                  detail: { title: cardTitle || item?.title || 'Product Enquiry' },
+                })
+              );
+            }}
+            className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 px-4 py-2.5 text-xs sm:text-sm font-extrabold transition-all shadow-xs hover:shadow-md cursor-pointer active:scale-[0.98]"
+          >
+            <i className="fa-solid fa-handshake-angle text-xs text-slate-950" />
+            <span>Are You Interested?</span>
+          </button>
         </div>
       </div>
     </div>

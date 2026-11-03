@@ -209,7 +209,7 @@ function Home() {
                       title={p.title}
                       hidePrice={true}
                       location={formatPropertyAddress(p)}
-                      tags={[p.bhk || '', p.area || ''].filter(Boolean)}
+                      tags={getDetailTags(p)}
                     />
                   </div>
                 ))}

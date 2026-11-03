@@ -24,10 +24,10 @@ const FALLBACK_ANNOUNCEMENTS = [
   },
   {
     _id: 'seed-3',
-    message: '✨ Hallmarked 22K gold & certified diamond collections now available with BIS verification.',
+    message: '✨ Explore all verified services across properties, automobiles, electronics and home comfort.',
     type: 'offer',
-    link: '/categories/jewellery',
-    badgeText: 'NEW LAUNCH',
+    link: '/categories',
+    badgeText: 'ALL SERVICES',
     priority: 7,
     active: true,
   },

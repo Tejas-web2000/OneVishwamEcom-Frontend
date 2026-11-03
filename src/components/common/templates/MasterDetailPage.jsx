@@ -474,7 +474,43 @@ export default function MasterDetailPage({
   }
 
   const itemTitle = cleanProductName(item.title);
-  const activeContact = getPropertyContactInfo(item.title);
+
+  // Entity Type Resolution: Precise separation of Vehicle vs Property vs General
+  const isVehicle = Boolean(
+    categoryName === 'Automobiles' ||
+    categoryName === 'Vehicles' ||
+    categoryName === 'Automobiles & Vehicles' ||
+    itemLinkPrefix?.includes('vehicle') ||
+    itemLinkPrefix?.includes('automobile') ||
+    item?.category === 'vehicles' ||
+    item?.category === 'automobile' ||
+    item?.category === 'automobiles' ||
+    item?.category === 'Commercial' ||
+    item?.category === 'SUV' ||
+    item?.category === 'Hatchback' ||
+    item?.category === 'Sedan' ||
+    item?.category === 'Luxury' ||
+    item?.wheelerType ||
+    item?.fuelType ||
+    item?.transmission ||
+    (item?.variants && item?.variants.length > 0 && !item?.propertyType)
+  );
+
+  const isProperty = Boolean(
+    !isVehicle && (
+      categoryName === 'Properties' ||
+      categoryName === 'Real Estate' ||
+      itemLinkPrefix?.includes('property') ||
+      item?.category === 'real-estate' ||
+      item?.category === 'properties' ||
+      item?.category === 'property' ||
+      item?.propertyType ||
+      item?.bhk ||
+      item?.bedrooms
+    )
+  );
+
+  const activeContact = isVehicle ? contactInfo : getPropertyContactInfo(item.title);
   const currentMedia = mediaItems[currentImageIndex] || mediaItems[0];
 
   // Badges normalization
@@ -549,41 +585,6 @@ export default function MasterDetailPage({
 
   // Specifications
   const specSections = item.specifications || [];
-
-  // Entity Type Resolution: Precise separation of Vehicle vs Property vs General
-  const isVehicle = Boolean(
-    categoryName === 'Automobiles' ||
-    categoryName === 'Vehicles' ||
-    categoryName === 'Automobiles & Vehicles' ||
-    itemLinkPrefix?.includes('vehicle') ||
-    itemLinkPrefix?.includes('automobile') ||
-    item?.category === 'vehicles' ||
-    item?.category === 'automobile' ||
-    item?.category === 'automobiles' ||
-    item?.category === 'Commercial' ||
-    item?.category === 'SUV' ||
-    item?.category === 'Hatchback' ||
-    item?.category === 'Sedan' ||
-    item?.category === 'Luxury' ||
-    item?.wheelerType ||
-    item?.fuelType ||
-    item?.transmission ||
-    (item?.variants && item?.variants.length > 0 && !item?.propertyType)
-  );
-
-  const isProperty = Boolean(
-    !isVehicle && (
-      categoryName === 'Properties' ||
-      categoryName === 'Real Estate' ||
-      itemLinkPrefix?.includes('property') ||
-      item?.category === 'real-estate' ||
-      item?.category === 'properties' ||
-      item?.category === 'property' ||
-      item?.propertyType ||
-      item?.bhk ||
-      item?.bedrooms
-    )
-  );
 
   // Property-Specific Overview Extraction
   const isPlot = Boolean(
@@ -751,9 +752,9 @@ export default function MasterDetailPage({
       </div>
 
       {/* ─── HOMEZ SINGLE V1 HERO HEADER ─── */}
-      <div ref={heroRef} className="bg-white border-b border-gray-200/70 pt-8 pb-7">
+      <div ref={heroRef} className="bg-white border-b border-gray-200/70 pt-4 sm:pt-5 pb-5">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-end">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             {/* Left 8 Cols: Title, Location, Badges, Bed/Bath/Sqft */}
             <div className="lg:col-span-8 space-y-3">
               <div className="flex flex-wrap items-center gap-2">
@@ -852,53 +853,78 @@ export default function MasterDetailPage({
             </div>
 
             {/* Right 4 Cols: Actions, Price & Rate */}
-            <div className="lg:col-span-4 flex flex-col items-start lg:items-end justify-between h-full pt-4 lg:pt-0">
-              <div className="flex items-center gap-2 mb-3">
-                <button
-                  onClick={() => setIsSaved(!isSaved)}
-                  className={`w-10 h-10 rounded-xl border flex items-center justify-center transition-colors cursor-pointer ${
-                    isSaved ? 'border-rose-200 bg-rose-50 text-rose-600' : 'border-gray-200 text-gray-600 hover:bg-gray-50'
-                  }`}
-                  title={isVehicle ? "Save Vehicle" : isProperty ? "Save Property" : "Save Item"}
-                >
-                  <i className={`${isSaved ? 'fa-solid text-rose-500' : 'fa-regular'} fa-heart`} />
-                </button>
-                <button
-                  onClick={handleShare}
-                  className="w-10 h-10 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 flex items-center justify-center transition-colors cursor-pointer"
-                  title="Share"
-                >
-                  <i className="fa-solid fa-share-nodes" />
-                </button>
-                {directMapUrl && (
-                  <a
-                    href={directMapUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-10 h-10 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 flex items-center justify-center transition-colors cursor-pointer"
-                    title="View on Google Maps"
-                  >
-                    <i className="fa-solid fa-map-location-dot" />
-                  </a>
-                )}
-                {pdfUrl && (
-                  <a
-                    href={pdfUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-10 h-10 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 flex items-center justify-center transition-colors cursor-pointer"
-                    title="Download Brochure PDF"
-                  >
-                    <i className="fa-solid fa-file-pdf text-rose-500" />
-                  </a>
-                )}
-              </div>
+            <div className="lg:col-span-4 flex flex-col items-start lg:items-end gap-3 pt-0">
+              {(directMapUrl || pdfUrl) && (
+                <div className="flex items-center gap-2 mb-1">
+                  {directMapUrl && (
+                    <a
+                      href={directMapUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-9 h-9 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 flex items-center justify-center transition-colors cursor-pointer"
+                      title="View on Google Maps"
+                    >
+                      <i className="fa-solid fa-map-location-dot text-sm" />
+                    </a>
+                  )}
+                  {pdfUrl && (
+                    <a
+                      href={pdfUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-9 h-9 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 flex items-center justify-center transition-colors cursor-pointer"
+                      title="Download Brochure PDF"
+                    >
+                      <i className="fa-solid fa-file-pdf text-rose-500 text-sm" />
+                    </a>
+                  )}
+                </div>
+              )}
 
-              <div className="lg:text-end flex flex-col items-start lg:items-end gap-3">
+              <div className="lg:text-end flex flex-col items-start lg:items-end gap-3 w-full">
                 {/* ── Co-Branding / Verification Partner Badge ── */}
                 <VerifiedPartnerBadge partnerName={partnerDisplayName} />
 
-                {isProperty ? (
+                {isVehicle ? (
+                  <div className="w-full bg-gradient-to-br from-slate-50 via-sky-50/40 to-blue-50/50 border border-sky-200/80 rounded-2xl p-3.5 sm:p-4 shadow-2xs space-y-2.5 lg:text-start">
+                    <div className="flex items-center justify-between gap-3 border-b border-sky-100 pb-2">
+                      <span className="inline-flex items-center gap-1.5 text-[11px] font-black text-brand-blue uppercase tracking-wider">
+                        <i className="fa-solid fa-car text-brand-blue text-xs" />
+                        Dealership Offer &amp; Assistance
+                      </span>
+                      <span className="rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-extrabold px-2.5 py-0.5">
+                        Verified Deal
+                      </span>
+                    </div>
+
+                    <div className="space-y-0.5">
+                      <div className="text-sm font-black text-slate-900 leading-snug">
+                        Best On-Road Price on Request
+                      </div>
+                      <p className="text-[11px] font-medium text-slate-600 leading-tight">
+                        Authorized showroom pricing, exchange bonus &amp; doorstep test drive.
+                      </p>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2 pt-0.5 w-full">
+                      <button
+                        type="button"
+                        onClick={() => setEnquiryOpen(true)}
+                        className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-md hover:shadow-lg transition-all cursor-pointer active:scale-95 whitespace-nowrap"
+                      >
+                        <i className="fa-solid fa-paper-plane text-xs" />
+                        <span>Enquire Now</span>
+                      </button>
+                      <a
+                        href={`tel:${activeContact.phoneTel || '+918546996622'}`}
+                        className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 font-black text-xs shadow-md hover:shadow-lg transition-all cursor-pointer active:scale-95 whitespace-nowrap"
+                      >
+                        <i className="fa-solid fa-phone text-xs" />
+                        <span>Call: {activeContact.phoneDisplay || '+91 85469 96622'}</span>
+                      </a>
+                    </div>
+                  </div>
+                ) : (
                   <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
                     <button
                       type="button"
@@ -916,46 +942,13 @@ export default function MasterDetailPage({
                       <span>Call: {activeContact.phoneDisplay || '+91 85469 96622'}</span>
                     </a>
                   </div>
-                ) : (
-                  <>
-                    <div className="flex items-baseline lg:justify-end gap-1.5">
-                      <span className={item.price === 'This is negotiable' ? 'text-2xl font-semibold text-gray-600' : 'text-3xl sm:text-4xl font-black text-slate-900 tracking-tight'}>
-                        {item.price || 'Price on Request'}
-                      </span>
-                      {item.priceSuffix && (
-                        <span className="text-sm font-semibold text-gray-500">{item.priceSuffix}</span>
-                      )}
-                    </div>
-                    {pricePerSqftDisplay && isProperty && (
-                      <p className="text-xs sm:text-sm font-semibold text-gray-500 mt-0.5">
-                        {pricePerSqftDisplay}
-                      </p>
-                    )}
-                    <div className="flex flex-wrap items-center gap-2.5 mt-1">
-                      <button
-                        type="button"
-                        onClick={() => setEnquiryOpen(true)}
-                        className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-md hover:shadow-lg transition-all cursor-pointer active:scale-95"
-                      >
-                        <i className="fa-solid fa-paper-plane text-xs" />
-                        <span>Enquire Now</span>
-                      </button>
-                      <a
-                        href={`tel:${activeContact.phoneTel || '+918546996622'}`}
-                        className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 font-black text-xs shadow-md hover:shadow-lg transition-all cursor-pointer active:scale-95"
-                      >
-                        <i className="fa-solid fa-phone text-xs" />
-                        <span>Call: {activeContact.phoneDisplay || '+91 85469 96622'}</span>
-                      </a>
-                    </div>
-                  </>
                 )}
               </div>
             </div>
           </div>
 
           {/* ─── 5-PHOTO LUXURY MOSAIC GALLERY (Homez Single V1) ─── */}
-          <div className="mt-7">
+          <div className="mt-5">
             {mediaItems.length <= 1 ? (
               <div
                 onClick={() => setGalleryOpen(true)}
@@ -1582,7 +1575,7 @@ export default function MasterDetailPage({
                   className="w-full rounded-xl bg-slate-900 hover:bg-slate-800 text-white py-3 px-4 text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-2xs hover:shadow-xs active:scale-[0.99]"
                 >
                   <i className="fa-solid fa-paper-plane text-xs" />
-                  <span>{isVehicle ? 'Enquire with Dealer' : isProperty ? 'Contact Agent' : 'Enquire Now'}</span>
+                  <span>{isProperty ? 'Contact Agent' : 'Enquire Now'}</span>
                 </button>
               </div>
             </div>
@@ -1743,25 +1736,14 @@ export default function MasterDetailPage({
                 {itemTitle}
               </h4>
               <div className="flex items-center gap-2 mt-0.5">
-                {isProperty ? (
-                  <button
-                    type="button"
-                    onClick={() => setEnquiryOpen(true)}
-                    className="text-xs font-extrabold text-amber-600 hover:text-amber-700 underline flex items-center gap-1 cursor-pointer"
-                  >
-                    <i className="fa-solid fa-handshake-angle text-[10px]" />
-                    <span>Are You Interested?</span>
-                  </button>
-                ) : (
-                  <>
-                    <span className={item.price === 'This is negotiable' ? 'text-xs sm:text-sm font-normal text-gray-500' : 'text-xs sm:text-sm font-extrabold text-slate-900'}>
-                      {item.price}
-                    </span>
-                    {item.priceSuffix && (
-                      <span className="text-[10px] text-gray-400 hidden xs:inline">{item.priceSuffix}</span>
-                    )}
-                  </>
-                )}
+                <button
+                  type="button"
+                  onClick={() => setEnquiryOpen(true)}
+                  className="text-xs font-extrabold text-amber-600 hover:text-amber-700 underline flex items-center gap-1 cursor-pointer"
+                >
+                  <i className="fa-solid fa-handshake-angle text-[10px]" />
+                  <span>Are You Interested?</span>
+                </button>
                 {(item.locality || item.location) && (
                   <span className="hidden md:inline-flex items-center gap-1 text-[11px] text-gray-400 truncate">
                     <span>•</span>
@@ -1799,8 +1781,8 @@ export default function MasterDetailPage({
               className="rounded-xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-500 hover:to-yellow-500 px-3.5 sm:px-4 py-2.5 text-xs font-bold text-slate-950 transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
             >
               <i className="fa-solid fa-phone text-xs" />
-              <span className="hidden lg:inline">Call: {activeContact.phoneDisplay || '+91 85469 96622'}</span>
-              <span className="lg:hidden">Call</span>
+              <span className="hidden sm:inline">Call: {activeContact.phoneDisplay || '+91 85469 96622'}</span>
+              <span className="sm:hidden">Call</span>
             </a>
           </div>
         </div>

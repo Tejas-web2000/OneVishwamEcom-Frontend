@@ -8,8 +8,8 @@ export const footerSummary =
 export const footerQuickLinks = primaryNavigation;
 
 export const footerServiceLinks = [
+  { label: 'All Categories', href: '/categories' },
   { label: 'Properties', href: '/categories/properties' },
-  { label: 'Jewellery', href: '/categories/jewellery' },
   { label: 'Automobiles', href: '/categories/automobile' },
   { label: 'Consumer Electronics', href: '/categories/consumer-electronics' },
   { label: 'Comfort', href: '/categories/bedding-comfort' },

@@ -16,14 +16,14 @@ const HERO_SLIDES = [
     ctaText: 'Explore Properties',
   },
   {
-    id: 'jewellery',
-    category: 'Jewellery',
-    title: 'Discover Certified Jewellery',
-    subtitle: 'Exquisitely crafted BIS hallmarked gold, lab-certified diamonds & fine silver from trusted jewellers.',
-    link: '/categories/jewellery',
-    image: 'https://images.pexels.com/photos/28933800/pexels-photo-28933800.jpeg?cs=srgb&dl=pexels-vedat-28933800.jpg&fm=jpg',
-    badgeIcon: 'fa-solid fa-gem',
-    ctaText: 'Explore Jewellery',
+    id: 'all-services',
+    category: 'All Categories',
+    title: 'Discover Verified Ecosystem Services',
+    subtitle: 'Everything in one trusted platform — verified properties, automobiles, electronics & comfort living.',
+    link: '/categories',
+    image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1800&q=80',
+    badgeIcon: 'fa-solid fa-shapes',
+    ctaText: 'Explore All Categories',
   },
   {
     id: 'automobile',
@@ -60,7 +60,6 @@ const HERO_SLIDES = [
 /* ── Category Badges Styling for Live Dropdown ── */
 const CATEGORY_BADGE_STYLES = {
   properties: 'bg-blue-50 text-blue-700 border border-blue-200',
-  jewellery: 'bg-amber-50 text-amber-800 border border-amber-200',
   vehicles: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
   automobile: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
   electronics: 'bg-purple-50 text-purple-700 border border-purple-200',
@@ -71,32 +70,28 @@ const CATEGORY_BADGE_STYLES = {
   'finance-lending': 'bg-sky-50 text-sky-700 border border-sky-200',
 };
 
-/* ── Homez-style Search Tabs (Configured per Category Vertical) ── */
+/* ── 5 Category Search Tabs ── */
 const SEARCH_TABS = [
   {
     id: 'all',
     label: 'All Categories',
-    icon: 'fa-solid fa-layer-group',
+    shortLabel: 'All',
+    icon: 'fa-solid fa-shapes',
     route: '/categories',
-    placeholder: 'Search across properties, jewellery, automobiles, electronics, comfort...',
+    placeholder: 'Search across properties, automobiles, electronics, comfort...',
   },
   {
     id: 'properties',
     label: 'Properties',
+    shortLabel: 'Properties',
     icon: 'fa-solid fa-house-chimney',
     route: '/categories/properties',
     placeholder: 'Search flats, plots, villas in Bengaluru...',
   },
   {
-    id: 'jewellery',
-    label: 'Jewellery',
-    icon: 'fa-solid fa-gem',
-    route: '/categories/jewellery',
-    placeholder: 'Search gold rings, diamond necklaces, silver coins...',
-  },
-  {
     id: 'automobile',
     label: 'Automobiles',
+    shortLabel: 'Auto',
     icon: 'fa-solid fa-car',
     route: '/categories/automobile',
     placeholder: 'Search cars, bikes, SUVs, commercial fleets...',
@@ -104,6 +99,7 @@ const SEARCH_TABS = [
   {
     id: 'consumer-electronics',
     label: 'Electronics',
+    shortLabel: 'Electronics',
     icon: 'fa-solid fa-tv',
     route: '/categories/consumer-electronics',
     placeholder: 'Search TVs, ACs, double door refrigerators, appliances...',
@@ -111,6 +107,7 @@ const SEARCH_TABS = [
   {
     id: 'bedding-comfort',
     label: 'Comfort',
+    shortLabel: 'Comfort',
     icon: 'fa-solid fa-bed',
     route: '/categories/bedding-comfort',
     placeholder: 'Search orthopedic mattresses, pillows, bedsheets...',
@@ -189,17 +186,19 @@ function BeddingVectorIcon({ className = 'w-10 h-10' }) {
   );
 }
 
-function JewelleryVectorIcon({ className = 'w-10 h-10' }) {
+function AllServicesVectorIcon({ className = 'w-10 h-10' }) {
   return (
     <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
-      <path d="M14 24L22 12H42L50 24L32 52L14 24Z" fill="#fef3c7" stroke="#1e293b" strokeWidth="2.5" strokeLinejoin="round" />
-      <path d="M22 12L32 24L42 12" stroke="#1e293b" strokeWidth="2" strokeLinejoin="round" fill="#fde68a" />
-      <path d="M14 24H50" stroke="#1e293b" strokeWidth="2" strokeLinejoin="round" />
-      <path d="M14 24L32 52L22 24" fill="#f59e0b" stroke="#1e293b" strokeWidth="2" strokeLinejoin="round" />
-      <path d="M42 24L32 52L50 24" fill="#d97706" stroke="#1e293b" strokeWidth="2" strokeLinejoin="round" />
-      <path d="M22 24L32 52L42 24" fill="#fbbf24" stroke="#1e293b" strokeWidth="2" strokeLinejoin="round" />
-      <path d="M54 10L55.5 7L57 10L60 11.5L57 13L55.5 16L54 13L51 11.5L54 10Z" fill="#f59e0b" />
-      <path d="M8 20L9.5 17L11 20L14 21.5L11 23L9.5 26L8 23L5 21.5L8 20Z" fill="#fbbf24" />
+      <rect x="12" y="12" width="16" height="16" rx="4" fill="#fca5a5" stroke="#1e293b" strokeWidth="2.5" strokeLinejoin="round" />
+      <rect x="36" y="12" width="16" height="16" rx="4" fill="#93c5fd" stroke="#1e293b" strokeWidth="2.5" strokeLinejoin="round" />
+      <rect x="12" y="36" width="16" height="16" rx="4" fill="#a7f3d0" stroke="#1e293b" strokeWidth="2.5" strokeLinejoin="round" />
+      <rect x="36" y="36" width="16" height="16" rx="4" fill="#fed7aa" stroke="#1e293b" strokeWidth="2.5" strokeLinejoin="round" />
+      <circle cx="20" cy="20" r="3" fill="#ffffff" fillOpacity="0.8" />
+      <path d="M41 17L47 23M47 17L41 23" stroke="#1e293b" strokeWidth="2" strokeLinecap="round" />
+      <circle cx="20" cy="44" r="3" fill="#ffffff" fillOpacity="0.8" />
+      <circle cx="44" cy="44" r="3" fill="#ffffff" fillOpacity="0.8" />
+      <path d="M56 28L57 26L58 28L60 29L58 30L57 32L56 30L54 29L56 28Z" fill="#fbbf24" />
+      <path d="M6 34L7 32L8 34L10 35L8 36L7 38L6 36L4 35L6 34Z" fill="#38bdf8" />
     </svg>
   );
 }
@@ -207,39 +206,39 @@ function JewelleryVectorIcon({ className = 'w-10 h-10' }) {
 /* ── The 5 Main Categories for Marketplace Points Module ── */
 const FIVE_CATEGORIES = [
   {
+    id: 'all-services',
+    title: 'All Categories',
+    link: '/categories',
+    Icon: AllServicesVectorIcon,
+    bgGlow: 'bg-rose-50/90 group-hover:bg-rose-100/90',
+  },
+  {
     id: 'properties',
     title: 'Properties',
     link: '/categories/properties',
     Icon: PropertiesVectorIcon,
-    bgGlow: 'bg-blue-50/80 border-blue-200 group-hover:border-blue-400',
-  },
-  {
-    id: 'jewellery',
-    title: 'Jewellery',
-    link: '/categories/jewellery',
-    Icon: JewelleryVectorIcon,
-    bgGlow: 'bg-amber-50/80 border-amber-200 group-hover:border-amber-400',
+    bgGlow: 'bg-blue-50/90 group-hover:bg-blue-100/90',
   },
   {
     id: 'automobile',
     title: 'Automobiles',
     link: '/categories/automobile',
     Icon: VehiclesVectorIcon,
-    bgGlow: 'bg-emerald-50/80 border-emerald-200 group-hover:border-emerald-400',
+    bgGlow: 'bg-emerald-50/90 group-hover:bg-emerald-100/90',
   },
   {
     id: 'consumer-electronics',
-    title: 'Consumer Electronics',
+    title: 'Electronics',
     link: '/categories/consumer-electronics',
     Icon: ElectronicsVectorIcon,
-    bgGlow: 'bg-purple-50/80 border-purple-200 group-hover:border-purple-400',
+    bgGlow: 'bg-purple-50/90 group-hover:bg-purple-100/90',
   },
   {
     id: 'bedding-comfort',
     title: 'Comfort',
     link: '/categories/bedding-comfort',
     Icon: BeddingVectorIcon,
-    bgGlow: 'bg-orange-50/80 border-orange-200 group-hover:border-orange-400',
+    bgGlow: 'bg-orange-50/90 group-hover:bg-orange-100/90',
   },
 ];
 
@@ -250,7 +249,7 @@ const POPULAR_CHIPS = [
   { label: 'Maruti Brezza', category: 'automobile' },
   { label: 'Orthopedic Mattress', category: 'bedding-comfort' },
   { label: '5 Star AC', category: 'consumer-electronics' },
-  { label: 'Home Loan', category: 'finance-lending' },
+  { label: 'Commercial Spaces', category: 'properties' },
 ];
 
 /* ── Address Highlight Helper matching NoBroker / Google Places Autocomplete UI ── */
@@ -292,6 +291,9 @@ function highlightAddress(text, query) {
 /* Helper to resolve the correct gallery page route for any category */
 function getGalleryRouteForCategory(category) {
   const cat = String(category || '').toLowerCase();
+  if (cat === 'all' || cat === 'all-services') {
+    return '/categories';
+  }
   if (cat === 'properties' || cat === 'property' || cat === 'real-estate') {
     return '/categories/properties';
   }
@@ -469,34 +471,31 @@ export default function HeroSection() {
       {/* ═══════════════════════════════════════════════════════════
           1. Category Navigation Bar (Sticky/Stacked at Top)
           ═══════════════════════════════════════════════════════════ */}
-      <section className="bg-gradient-to-r from-slate-200/95 via-[#dbe7f4] to-slate-200/95 py-3 sm:py-3.5 border-b-2 border-slate-300 shadow-xs relative z-20">
+      <section className="bg-gradient-to-r from-slate-200/95 via-[#dbe7f4] to-slate-200/95 py-3.5 sm:py-4 border-b-2 border-slate-300 shadow-xs relative z-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* 5 Category Cards Grid with Lineal Color Vector Icons */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3.5">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
             {FIVE_CATEGORIES.map((item) => {
               const IconComponent = item.Icon;
               return (
                 <Link
                   key={item.id}
                   to={item.link}
-                  className="group bg-white hover:bg-slate-50 rounded-2xl p-3 sm:p-3.5 border-2 border-slate-300 hover:border-brand-blue shadow-2xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-between gap-2.5 cursor-pointer"
+                  className="group bg-white hover:bg-slate-50 rounded-2xl py-3.5 sm:py-4 px-3.5 sm:px-4.5 border-2 border-slate-300/90 hover:border-brand-blue shadow-2xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-3 sm:gap-3.5 cursor-pointer min-h-[72px] sm:min-h-[78px]"
                 >
-                  <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-                    {/* Lineal Illustrated Icon Container */}
-                    <div className={`w-11 h-11 sm:w-12 sm:h-12 rounded-xl ${item.bgGlow} p-1.5 flex items-center justify-center shadow-2xs group-hover:scale-108 transition-transform duration-300 shrink-0 border border-slate-300`}>
-                      <IconComponent className="w-8 h-8 sm:w-9 sm:h-9 object-contain" />
+                  <div className="flex items-center gap-3 sm:gap-3.5 min-w-0">
+                    {/* Lineal Illustrated Icon Container (Borderless, Larger Size) */}
+                    <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl ${item.bgGlow} p-2 flex items-center justify-center shadow-xs group-hover:scale-108 transition-all duration-300 shrink-0`}>
+                      <IconComponent className="w-9 h-9 sm:w-10 sm:h-10 object-contain" />
                     </div>
 
                     {/* Category Title */}
                     <div className="min-w-0">
-                      <h3 className="font-extrabold text-slate-900 group-hover:text-brand-blue text-xs sm:text-sm transition-colors leading-snug truncate">
+                      <h3 className="font-extrabold text-slate-900 group-hover:text-brand-blue text-sm sm:text-base transition-colors leading-snug truncate">
                         {item.title}
                       </h3>
                     </div>
                   </div>
-
-                  {/* Subtle Right Arrow */}
-                  <i className="fa-solid fa-arrow-right text-[10px] text-slate-400 group-hover:text-brand-blue group-hover:translate-x-0.5 transition-all shrink-0" />
                 </Link>
               );
             })}
@@ -597,36 +596,39 @@ export default function HeroSection() {
             </div>
 
             {/* ═══════════════════════════════════════════════════════════
-                Category Tabs & ONE-LINE Search Bar Components
+                Category Tabs & Search Bar Components
                 ═══════════════════════════════════════════════════════════ */}
-            <div className="mt-6 sm:mt-8 w-full max-w-4xl mx-auto">
-              {/* Segmented Cohesive Tabs Flush with Search Bar Box */}
-              <div className="flex items-center justify-start sm:justify-center gap-1 sm:gap-1.5 flex-nowrap overflow-x-auto scrollbar-hide mb-[-1px] relative z-20 px-1">
-                {SEARCH_TABS.map((tab) => {
-                  const isActive = activeCategory === tab.id;
-                  return (
-                    <button
-                      key={tab.id}
-                      type="button"
-                      onClick={() => setActiveCategory(tab.id)}
-                      className={`shrink-0 inline-flex items-center gap-2 px-4 sm:px-5 h-11 text-xs sm:text-sm rounded-t-xl transition-all cursor-pointer whitespace-nowrap ${
-                        isActive
-                          ? 'bg-white text-slate-950 font-black shadow-md border-t-2 border-x-2 border-slate-400 border-b-0 z-20'
-                          : 'bg-slate-300/95 hover:bg-slate-200 text-slate-800 hover:text-slate-950 font-extrabold border-t-2 border-x-2 border-slate-400/80 border-b-0'
-                      }`}
-                    >
-                      <i className={`${tab.icon} text-xs ${isActive ? 'text-[#eb4e52]' : 'text-slate-600'}`} />
-                      <span>{tab.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
+            <div className="mt-6 sm:mt-8 w-full max-w-5xl mx-auto px-1 sm:px-4">
+              <div className="flex flex-row items-end justify-center gap-2 sm:gap-3 w-full">
+                {/* ── Left Column: 5 Search Tabs on top, Search Input Box directly below ──
+                    Both are child elements of this column and share w-full, guaranteeing 
+                    that the search input area is 100% equivalent to the 5 options width. */}
+                <div ref={searchContainerRef} className="relative flex-1 max-w-3xl lg:max-w-4xl min-w-0 flex flex-col z-40">
+                  {/* 5 Equivalent Search Tabs */}
+                  <div className="grid grid-cols-5 gap-1.5 sm:gap-2 mb-2 sm:mb-2.5 relative z-20 w-full">
+                    {SEARCH_TABS.map((tab) => {
+                      const isActive = activeCategory === tab.id;
+                      return (
+                        <button
+                          key={tab.id}
+                          type="button"
+                          onClick={() => setActiveCategory(tab.id)}
+                          className={`w-full inline-flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3 h-10 sm:h-11 text-[11px] sm:text-xs md:text-sm rounded-xl font-bold transition-all cursor-pointer truncate ${
+                            isActive
+                              ? 'bg-white text-slate-950 font-black shadow-md border-2 border-slate-400 z-20 ring-2 ring-slate-400/20'
+                              : 'bg-slate-200/90 hover:bg-white text-slate-800 hover:text-slate-950 font-extrabold border-2 border-slate-300 shadow-xs'
+                          }`}
+                        >
+                          <i className={`${tab.icon} text-[10px] sm:text-xs shrink-0 ${isActive ? 'text-[#eb4e52]' : 'text-slate-600'}`} />
+                          <span className="hidden sm:inline truncate">{tab.label}</span>
+                          <span className="inline sm:hidden truncate">{tab.shortLabel || tab.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
 
-              {/* Robust ONE-LINE Elevated Search Card */}
-              <div ref={searchContainerRef} className="relative z-40">
-                <div className="bg-white rounded-xl sm:rounded-2xl shadow-[0_20px_50px_-10px_rgba(15,23,42,0.30)] border-2 border-slate-400 flex flex-row items-stretch overflow-hidden relative z-10">
-                  {/* Search input with location marker icon */}
-                  <div className="relative flex-1 flex items-center min-w-0 px-3.5 sm:px-5 py-3 sm:py-3.5">
+                  {/* Distinct Search Input Box (100% width matching the 5 tabs above) */}
+                  <div className="relative w-full flex items-center min-w-0 bg-white rounded-xl sm:rounded-2xl shadow-[0_15px_35px_-10px_rgba(15,23,42,0.25)] border-2 border-slate-400 px-3.5 sm:px-5 h-[48px] sm:h-[54px] z-10">
                     <i className="fa-solid fa-location-dot text-slate-500 text-sm sm:text-base mr-2.5 sm:mr-3 shrink-0" />
                     <input
                       ref={inputRef}
@@ -664,95 +666,95 @@ export default function HeroSection() {
                     )}
                   </div>
 
-                  {/* Solid High-Contrast ONE-LINE Search Button (Attached to right edge, like NoBroker) */}
-                  <button
-                    type="button"
-                    onClick={handleSearchSubmit}
-                    className="shrink-0 bg-[#eb4e52] hover:bg-[#d94145] text-white font-extrabold px-6 sm:px-9 py-3 sm:py-3.5 text-xs sm:text-sm md:text-base transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-inner active:scale-98"
-                  >
-                    <i className="fa-solid fa-magnifying-glass text-xs sm:text-sm" />
-                    <span>Search</span>
-                  </button>
+                  {/* ── CRISP SOLID (NON-BLURRED) LIVE SEARCH DROPDOWN ── */}
+                  {showSuggestions && (internalQuery.trim().length > 0 || suggestions.length > 0) && (
+                    <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-2xl shadow-[0_25px_60px_-15px_rgba(15,23,42,0.40)] border-2 border-slate-400 z-50 overflow-hidden text-left animate-fade-in max-h-[440px] flex flex-col">
+                      {/* Header Bar */}
+                      <div className="flex items-center justify-between px-5 py-2.5 bg-slate-100 border-b-2 border-slate-200 text-xs">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-slate-900">
+                            {internalQuery ? (
+                              <>Results for &ldquo;<span className="text-[#eb4e52]">{internalQuery}</span>&rdquo;</>
+                            ) : (
+                              'Popular Inventory'
+                            )}
+                          </span>
+                          {isSearching && (
+                            <i className="fa-solid fa-spinner animate-spin text-[#eb4e52] text-xs" />
+                          )}
+                        </div>
+                        <div className="text-[11px] font-extrabold text-slate-600">
+                          {suggestions.length} {suggestions.length === 1 ? 'product' : 'products'}
+                        </div>
+                      </div>
+
+                      {/* Single Clean Full-Width Column: All Products */}
+                      <div className="overflow-y-auto flex-1 divide-y divide-slate-200 bg-white">
+                        {suggestions.length > 0 ? (
+                          suggestions.slice(0, 8).map((item) => {
+                            const categoryName =
+                              item.categoryLabel ||
+                              (item.category ? item.category.charAt(0).toUpperCase() + item.category.slice(1) : '');
+                            const locationName = item.location || item.locality || item.city || '';
+                            const detailLine = [categoryName, locationName].filter(Boolean).join(' · ') || 'Verified Product';
+
+                            return (
+                              <div
+                                key={`${item.category}-${item.id || item._id}`}
+                                onClick={() => handleProductClick(item)}
+                                className="px-5 py-3 hover:bg-slate-100 transition-colors cursor-pointer group"
+                              >
+                                <h4 className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-[#eb4e52] transition-colors truncate">
+                                  {highlightAddress(item.title, internalQuery)}
+                                </h4>
+                                <p className="text-[11px] sm:text-xs text-slate-600 font-medium truncate mt-0.5">
+                                  {detailLine}
+                                </p>
+                              </div>
+                            );
+                          })
+                        ) : !isSearching ? (
+                          <div className="p-6 text-center text-xs text-slate-500 space-y-2">
+                            <i className="fa-solid fa-box-open text-slate-400 text-2xl block" />
+                            <p className="text-sm font-semibold text-slate-800">No products found for &ldquo;{internalQuery}&rdquo;</p>
+                            <button
+                              type="button"
+                              onClick={handleSearchSubmit}
+                              className="text-xs font-bold text-[#eb4e52] hover:underline cursor-pointer"
+                            >
+                              Search all categories →
+                            </button>
+                          </div>
+                        ) : null}
+                      </div>
+
+                      {/* Bottom Global Action Bar */}
+                      <div className="px-5 py-2.5 bg-slate-100 border-t-2 border-slate-200 flex items-center justify-between text-xs">
+                        <span className="text-slate-600 font-medium text-[11px]">
+                          Press <kbd className="px-1.5 py-0.5 bg-white border-2 border-slate-300 rounded font-mono text-[10px] text-slate-800 font-bold">Enter</kbd> to search
+                        </span>
+                        <button
+                          type="button"
+                          onClick={handleSearchSubmit}
+                          className="font-black text-[#eb4e52] hover:text-[#d94145] flex items-center gap-1 cursor-pointer"
+                        >
+                          <span>See full results</span>
+                          <i className="fa-solid fa-arrow-right text-[10px]" />
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
-                {/* ── CRISP SOLID (NON-BLURRED) LIVE SEARCH DROPDOWN ── */}
-                {showSuggestions && (internalQuery.trim().length > 0 || suggestions.length > 0) && (
-                  <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-2xl shadow-[0_25px_60px_-15px_rgba(15,23,42,0.40)] border-2 border-slate-400 z-50 overflow-hidden text-left animate-fade-in max-h-[440px] flex flex-col">
-                    {/* Header Bar */}
-                    <div className="flex items-center justify-between px-5 py-2.5 bg-slate-100 border-b-2 border-slate-200 text-xs">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-slate-900">
-                          {internalQuery ? (
-                            <>Results for &ldquo;<span className="text-[#eb4e52]">{internalQuery}</span>&rdquo;</>
-                          ) : (
-                            'Popular Inventory'
-                          )}
-                        </span>
-                        {isSearching && (
-                          <i className="fa-solid fa-spinner animate-spin text-[#eb4e52] text-xs" />
-                        )}
-                      </div>
-                      <div className="text-[11px] font-extrabold text-slate-600">
-                        {suggestions.length} {suggestions.length === 1 ? 'product' : 'products'}
-                      </div>
-                    </div>
-
-                    {/* Single Clean Full-Width Column: All Products */}
-                    <div className="overflow-y-auto flex-1 divide-y divide-slate-200 bg-white">
-                      {suggestions.length > 0 ? (
-                        suggestions.slice(0, 8).map((item) => {
-                          const categoryName =
-                            item.categoryLabel ||
-                            (item.category ? item.category.charAt(0).toUpperCase() + item.category.slice(1) : '');
-                          const locationName = item.location || item.locality || item.city || '';
-                          const detailLine = [categoryName, locationName].filter(Boolean).join(' · ') || 'Verified Product';
-
-                          return (
-                            <div
-                              key={`${item.category}-${item.id || item._id}`}
-                              onClick={() => handleProductClick(item)}
-                              className="px-5 py-3 hover:bg-slate-100 transition-colors cursor-pointer group"
-                            >
-                              <h4 className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-[#eb4e52] transition-colors truncate">
-                                {highlightAddress(item.title, internalQuery)}
-                              </h4>
-                              <p className="text-[11px] sm:text-xs text-slate-600 font-medium truncate mt-0.5">
-                                {detailLine}
-                              </p>
-                            </div>
-                          );
-                        })
-                      ) : !isSearching ? (
-                        <div className="p-6 text-center text-xs text-slate-500 space-y-2">
-                          <i className="fa-solid fa-box-open text-slate-400 text-2xl block" />
-                          <p className="text-sm font-semibold text-slate-800">No products found for &ldquo;{internalQuery}&rdquo;</p>
-                          <button
-                            type="button"
-                            onClick={handleSearchSubmit}
-                            className="text-xs font-bold text-[#eb4e52] hover:underline cursor-pointer"
-                          >
-                            Search all categories →
-                          </button>
-                        </div>
-                      ) : null}
-                    </div>
-
-                    {/* Bottom Global Action Bar */}
-                    <div className="px-5 py-2.5 bg-slate-100 border-t-2 border-slate-200 flex items-center justify-between text-xs">
-                      <span className="text-slate-600 font-medium text-[11px]">
-                        Press <kbd className="px-1.5 py-0.5 bg-white border-2 border-slate-300 rounded font-mono text-[10px] text-slate-800 font-bold">Enter</kbd> to search
-                      </span>
-                      <button
-                        type="button"
-                        onClick={handleSearchSubmit}
-                        className="font-black text-[#eb4e52] hover:text-[#d94145] flex items-center gap-1 cursor-pointer"
-                      >
-                        <span>See full results</span>
-                        <i className="fa-solid fa-arrow-right text-[10px]" />
-                      </button>
-                    </div>
-                  </div>
-                )}
+                {/* ── Right Column: Separate Search Button in that same line ── */}
+                <button
+                  type="button"
+                  onClick={handleSearchSubmit}
+                  className="shrink-0 h-[48px] sm:h-[54px] bg-[#eb4e52] hover:bg-[#d94145] text-white font-extrabold px-4 sm:px-9 text-xs sm:text-sm md:text-base rounded-xl sm:rounded-2xl border-2 border-red-600/90 shadow-[0_15px_35px_-10px_rgba(235,78,82,0.45)] hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95 z-30"
+                >
+                  <i className="fa-solid fa-magnifying-glass text-xs sm:text-sm" />
+                  <span>Search</span>
+                </button>
               </div>
 
               {/* Trending Section */}

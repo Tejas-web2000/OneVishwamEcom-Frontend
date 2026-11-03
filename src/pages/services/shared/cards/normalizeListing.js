@@ -113,7 +113,15 @@ export function normalizeListing(rawItem, sector = '') {
   // Resolve tag chips
   const tags = [];
   if (rawItem.bhk && rawItem.bhk !== 'N/A') tags.push(rawItem.bhk);
-  if (rawItem.area && typeof rawItem.area === 'string') tags.push(rawItem.area);
+  if (rawItem.area && typeof rawItem.area === 'string') {
+    const rawArea = rawItem.area.trim();
+    if (rawArea.includes('·') || rawArea.includes('•')) {
+      const parts = rawArea.split(/\s*[·•]\s*/).map((p) => p.trim()).filter(Boolean);
+      tags.push(...parts);
+    } else {
+      tags.push(rawArea);
+    }
+  }
   if (rawItem.fuelType) tags.push(rawItem.fuelType);
   if (rawItem.year) tags.push(String(rawItem.year));
   if (rawItem.fabric) tags.push(rawItem.fabric);

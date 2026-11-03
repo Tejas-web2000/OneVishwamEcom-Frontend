@@ -9,6 +9,8 @@
     "preview": "vite preview",
     "test": "jest",
     "deploy": "npm run build && node scripts/deploy-hostinger.js",
+    "deploy:fast": "npm run build && npx firebase deploy --only hosting:frontend",
+    "deploy:all": "npm run build && node scripts/deploy-hostinger.js && npx firebase deploy --only hosting:frontend",
     "deploy:only": "node scripts/deploy-hostinger.js"
   },
   "dependencies": {

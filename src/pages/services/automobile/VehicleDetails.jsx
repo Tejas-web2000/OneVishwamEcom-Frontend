@@ -107,7 +107,7 @@ export default function VehicleDetails() {
 
   // Header Dropdown Component
   const headerVariantDropdown = variants.length > 0 && (
-    <div className="bg-slate-50/90 border border-slate-200/90 rounded-2xl p-3.5 sm:p-4 shadow-2xs space-y-2.5 max-w-2xl">
+    <div className="bg-slate-50/90 border border-slate-200/90 rounded-2xl p-3.5 sm:p-4 shadow-2xs space-y-2.5 w-full">
       <div className="flex items-center justify-between gap-2">
         <label htmlFor="variant-select-header" className="text-[11px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
           <i className="fa-solid fa-car-side text-brand-blue" />

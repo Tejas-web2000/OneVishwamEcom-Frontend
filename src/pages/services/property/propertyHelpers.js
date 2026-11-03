@@ -573,7 +573,33 @@ export function getDetailTags(property) {
     tags.push(property.bhk);
   }
 
-  if (property.area) tags.push(property.area);
+  if (property.area) {
+    const rawArea = String(property.area).trim();
+    const parts = rawArea.split(/\s*[\u00b7\u2022\u2219\u2027\u25cf\u25cb\u2043\u2218•·|]\s*/).map((p) => p.trim()).filter(Boolean);
+    if (parts.length > 1) {
+      const sqftParts = parts.filter((p) => /sq\.?ft|sqft/i.test(p));
+      const unitParts = parts.filter((p) => /\b\d+\s*units?\b/i.test(p));
+      const acreParts = parts.filter((p) => /acres?|guntas?/i.test(p));
+      const otherParts = parts.filter(
+        (p) => !sqftParts.includes(p) && !unitParts.includes(p) && !acreParts.includes(p)
+      );
+
+      const ordered = [
+        ...sqftParts,
+        ...acreParts,
+        ...unitParts,
+        ...otherParts,
+      ];
+      tags.push(...ordered);
+    } else {
+      tags.push(rawArea);
+    }
+  }
+
+  const rawUnits = property.totalUnits || property.details?.totalUnits || '';
+  if (rawUnits && !tags.some((t) => /\bunits?\b/i.test(t))) {
+    tags.push(`${String(rawUnits).replace(/units?/i, '').trim()} Units`);
+  }
   const facingVal = property.facing;
   if (facingVal && facingVal !== 'N/A' && facingVal !== 'NA') {
     tags.push(`Door Facing: ${facingVal}`);
