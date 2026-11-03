@@ -7,6 +7,10 @@ jest.mock('../../config/navigation', () => ({
   navigateTo: jest.fn(),
 }));
 
+jest.mock('../../store/authSlice', () => ({
+  useAuth: () => ({ isLoggedIn: true, user: null, openAuthModal: jest.fn() }),
+}));
+
 describe('ProductCard Component', () => {
   const defaultProps = {
     title: 'Test Product',

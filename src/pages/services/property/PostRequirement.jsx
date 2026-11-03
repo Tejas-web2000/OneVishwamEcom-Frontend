@@ -1,7 +1,8 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useLocation } from '../../../store/locationSlice';
-import { cities } from '../../../data/locations';
+import { cities } from '../../../constants/locations';
+import { Breadcrumbs } from '../../../components/ui';
 
 const LOOKING_FOR = [
   { value: 'house', label: 'House' },
@@ -107,16 +108,19 @@ function PostRequirement() {
   return (
     <div className="min-h-screen pb-24 pt-4 sm:pt-6">
       <div className="mx-auto max-w-3xl px-4 sm:px-6">
-        {/* Back link */}
-        <Link to="/property" className="inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-brand-blue transition-colors mb-6">
-          <i className="fa-solid fa-arrow-left text-[10px]" />
-          Back to Property Listings
-        </Link>
+        {/* Breadcrumb navigation */}
+        <div className="mb-6">
+          <Breadcrumbs
+            categoryName="Properties"
+            categoryLink="/our-services/properties"
+            itemTitle="Post Requirement"
+          />
+        </div>
 
         {/* Header */}
         <div className="mb-8">
           <p className="text-xs font-semibold uppercase tracking-widest text-brand-blue mb-1">
-            OneVishwam · Houses & Land
+            OneVishwam · Properties
           </p>
           <h1 className="text-2xl font-bold text-brand-charcoal sm:text-3xl">Tell Us What You're Looking For</h1>
           <p className="text-sm text-gray-500 mt-2">Fill in a few details, and we'll help you find matching properties.</p>
@@ -334,14 +338,17 @@ function PostRequirement() {
 
           {/* Submit */}
           <div className="flex flex-col sm:flex-row gap-3">
-            <button type="submit"
-              className="flex-1 rounded-xl bg-brand-blue py-3.5 text-sm font-bold text-white hover:bg-brand-navy transition-colors"
+            <button
+              type="submit"
+              className="flex-1 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 py-3.5 text-sm font-extrabold transition-all shadow-md active:scale-[0.98] cursor-pointer"
             >
               <i className="fa-solid fa-paper-plane mr-2" />
               Submit Requirement
             </button>
-            <button type="button" onClick={() => navigate(-1)}
-              className="rounded-xl border border-gray-200 bg-white py-3.5 px-8 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              className="rounded-xl border border-slate-200 bg-white py-3.5 px-8 text-sm font-bold text-slate-700 hover:bg-slate-50 transition-all shadow-2xs cursor-pointer active:scale-[0.98]"
             >
               Cancel
             </button>

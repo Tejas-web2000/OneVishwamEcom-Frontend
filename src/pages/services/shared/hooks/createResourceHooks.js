@@ -14,12 +14,16 @@ function extractDetail(res) {
   if (!res) return null;
   return (
     res.data?.data?.item ||
+    res.data?.data?.electronic ||
+    res.data?.data?.bedding ||
     res.data?.data?.property ||
     res.data?.data?.vehicle ||
     res.data?.data?.garment ||
     res.data?.data?.grocery ||
     res.data?.data?.jewellery ||
     res.data?.item ||
+    res.data?.electronic ||
+    res.data?.bedding ||
     res.data?.vehicle ||
     res.data?.property ||
     res.data?.garment ||
@@ -48,7 +52,15 @@ export function createResourceHooks({
       () => api.getAll(params).then(extractList),
       { ttl: CACHE_TTL.products, fallback: listFallback }
     );
-    return { [plural]: data || listFallback, loading, error, retry };
+    const list = data || listFallback;
+    return {
+      [plural]: list,
+      items: list,
+      data: list,
+      loading,
+      error,
+      retry,
+    };
   };
 
   const useById = (id) => {
@@ -57,7 +69,15 @@ export function createResourceHooks({
       () => api.getById(id).then(extractDetail),
       { ttl: CACHE_TTL.detail, fallback: detailFallback, enabled: !!id }
     );
-    return { [singular]: data || detailFallback, loading, error, retry };
+    const itemData = data || detailFallback;
+    return {
+      [singular]: itemData,
+      item: itemData,
+      data: itemData,
+      loading,
+      error,
+      retry,
+    };
   };
 
   const useSimilar = (id) => {

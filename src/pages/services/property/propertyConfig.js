@@ -1,5 +1,5 @@
 /**
- * Real Estate & Property Sector Configuration
+ * Properties Sector Configuration
  */
 import {
   PROPERTY_CARD_TYPES,
@@ -23,7 +23,7 @@ export const PROPERTY_BUDGET_CHIPS = [
 
 export const propertyListingConfig = {
   sector: 'property',
-  eyebrow: 'OneVishwam · Real Estate',
+  eyebrow: 'OneVishwam · Properties',
   title: 'Find Your Property',
   subtitle: 'Verified apartments, Villa, Plot, and commercial spaces across top Indian cities.',
   categories: PROPERTY_CARD_TYPES,

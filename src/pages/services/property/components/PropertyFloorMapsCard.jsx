@@ -97,7 +97,7 @@ export default function PropertyFloorMapsCard({ item }) {
             >
               <img
                 src={floorPlanImages[activeFpIndex] || floorPlanImages[0]}
-                alt={`${item.title || item.name} Floor Plan ${activeFpIndex + 1}`}
+                alt={`${item.title} Floor Plan ${activeFpIndex + 1}`}
                 className="max-h-[480px] w-auto object-contain transition-transform duration-300 group-hover:scale-105"
               />
               <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent p-3.5 text-white flex justify-between items-center">
@@ -146,7 +146,7 @@ export default function PropertyFloorMapsCard({ item }) {
             <iframe
               src={pdfUrl}
               className="w-full h-[450px] sm:h-[550px] border-0"
-              title={`${item.title || item.name} Floor Maps PDF`}
+              title={`${item.title} Floor Maps PDF`}
             />
           </div>
         )}

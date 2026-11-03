@@ -1,6 +1,6 @@
 import React, { useState, useMemo, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getPropertyCoverImage, formatPropertyDisplayPrice, getBangaloreZone } from '../propertyHelpers';
+import { getPropertyCoverImage, formatPropertyDisplayPrice, getBangaloreZone, formatPropertyAddress } from '../propertyHelpers';
 import bangaloreBbmpMap from '../../../../assets/maps/bangalore_bbmp_map.png';
 
 // 8 Official BBMP Administrative Zones with exact hotspot centers and bounding coordinates on 1024x982 map
@@ -185,14 +185,16 @@ function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
   };
 }
 
-function describePieSlice(x, y, radius, startAngle, endAngle) {
-  const start = polarToCartesian(x, y, radius, endAngle);
-  const end = polarToCartesian(x, y, radius, startAngle);
-  const largeArcFlag = endAngle - startAngle <= 180 ? '0' : '1';
+function describePieSlice(centerX, centerY, radius, startAngle, endAngle) {
+  const pStart = polarToCartesian(centerX, centerY, radius, startAngle);
+  const pEnd = polarToCartesian(centerX, centerY, radius, endAngle);
+  const arcLength = endAngle - startAngle;
+  const largeArcFlag = arcLength > 180 ? 1 : 0;
+
   return [
-    'M', x, y,
-    'L', start.x, start.y,
-    'A', radius, radius, 0, largeArcFlag, 0, end.x, end.y,
+    'M', centerX, centerY,
+    'L', pStart.x, pStart.y,
+    'A', radius, radius, 0, largeArcFlag, 1, pEnd.x, pEnd.y,
     'Z',
   ].join(' ');
 }
@@ -218,50 +220,159 @@ function BangalorePropertyPieMap({ properties = [], activeZone, onSelectZone }) 
     return groups;
   }, [properties]);
 
-  // Calculate synchronized pie chart slices (8 BBMP zones)
-  const pieSlices = useMemo(() => {
+  // All 8 BBMP zones for the legend display
+  const legendList = useMemo(() => {
     const total = properties.length || 1;
-    let currentAngle = 0;
-    const zoneKeys = Object.keys(BBMP_ZONES);
-
-    const rawRatios = zoneKeys.map((key) => {
-      const count = (zoneGroups[key] || []).length;
-      return { key, count, ratio: count / total };
-    });
-
-    return rawRatios.map(({ key, count, ratio }) => {
+    return Object.keys(BBMP_ZONES).map((key) => {
       const meta = BBMP_ZONES[key];
-      const angleSpan = Math.max(ratio * 360, 18);
-      const startAngle = currentAngle;
-      const endAngle = currentAngle + angleSpan;
-      currentAngle = endAngle;
-
-      const percent = Math.round((count / total) * 100);
-      const d = describePieSlice(150, 150, 138, startAngle, endAngle);
-
+      const count = (zoneGroups[key] || []).length;
       return {
         key,
         name: meta.name,
         count,
-        percent,
         color: meta.color,
-        d,
+        percent: Math.round((count / total) * 100),
       };
     });
-  }, [properties, zoneGroups]);
+  }, [properties.length, zoneGroups]);
+
+  // Calculate non-overlapping, strictly 360-degree pie chart slices for active zones
+  const pieSlices = useMemo(() => {
+    const total = properties.length || 1;
+    const zoneKeys = Object.keys(BBMP_ZONES);
+
+    // Only zones with at least 1 property draw a slice in the circular pie
+    const activeZones = zoneKeys
+      .map((key) => ({
+        key,
+        meta: BBMP_ZONES[key],
+        count: (zoneGroups[key] || []).length,
+      }))
+      .filter((z) => z.count > 0);
+
+    if (activeZones.length === 0) return [];
+
+    const totalCount = activeZones.reduce((sum, z) => sum + z.count, 0) || 1;
+
+    // Minimum visible angle in degrees (6°) so small counts remain clickable without exceeding 360°
+    const MIN_ANGLE = 6;
+    const minNeeded = activeZones.length * MIN_ANGLE;
+
+    let angles;
+    if (minNeeded < 360 && activeZones.length > 1) {
+      const remainingAngle = 360 - minNeeded;
+      angles = activeZones.map((z) => MIN_ANGLE + (z.count / totalCount) * remainingAngle);
+    } else {
+      angles = activeZones.map((z) => (z.count / totalCount) * 360);
+    }
+
+    // Strictly normalize to exactly 360.0 degrees to eliminate ANY seam or overlap
+    const angleSum = angles.reduce((a, b) => a + b, 0) || 1;
+    angles = angles.map((a) => (a / angleSum) * 360);
+
+    let currentAngle = 0;
+    return activeZones.map((z, idx) => {
+      const angleSpan = idx === activeZones.length - 1 ? (360 - currentAngle) : angles[idx];
+      const startAngle = currentAngle;
+      const endAngle = currentAngle + angleSpan;
+      currentAngle = endAngle;
+
+      const midAngle = (startAngle + endAngle) / 2;
+      const midRad = ((midAngle - 90) * Math.PI) / 180.0;
+      // Radially explode outward by 9px along mid-angle on hover/select (avoids angular overlap)
+      const explodeX = Math.round(Math.cos(midRad) * 9 * 10) / 10;
+      const explodeY = Math.round(Math.sin(midRad) * 9 * 10) / 10;
+
+      const percent = Math.round((z.count / totalCount) * 100);
+      const isSingleZone = activeZones.length === 1;
+      const d = isSingleZone ? '' : describePieSlice(150, 150, 136, startAngle, endAngle);
+
+      return {
+        key: z.key,
+        name: z.meta.name,
+        count: z.count,
+        percent,
+        color: z.meta.color,
+        d,
+        isSingleZone,
+        explodeX,
+        explodeY,
+      };
+    });
+  }, [properties.length, zoneGroups]);
 
   // Generate accurately plotted property markers
   const propertyPins = useMemo(() => {
     return properties.map((item, index) => {
       const coords = getAccurateCoordinates(item, index);
+      const itemId = item._id || item.id || `prop-${index}`;
       return {
         x: coords.x,
         y: coords.y,
-        item,
+        item: { ...item, id: itemId },
         zoneId: coords.zoneId,
+        zoneName: coords.zoneName,
       };
     });
   }, [properties]);
+
+  // Calculate active highlight zone: hoveredZone takes precedence, else selected activeZone
+  const activeHighlightZone =
+    hoveredZone ||
+    (activeZone && activeZone !== 'All'
+      ? ZONE_NAME_TO_ID[activeZone] || activeZone.toLowerCase()
+      : null);
+
+  // Map cursor tracking to dynamically detect the nearest zone across entire map canvas
+  const handleMapMouseMove = (e) => {
+    // If user is directly hovering a pin, let the pin handlers manage it
+    if (hoveredProperty) return;
+
+    const rect = e.currentTarget.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+
+    const scaleX = 1024 / rect.width;
+    const scaleY = 982 / rect.height;
+    const mouseX = (e.clientX - rect.left) * scaleX;
+    const mouseY = (e.clientY - rect.top) * scaleY;
+
+    if (mouseX < 0 || mouseX > 1024 || mouseY < 0 || mouseY > 982) {
+      if (hoveredZone) setHoveredZone(null);
+      return;
+    }
+
+    let closestKey = null;
+    let minDistanceSq = Infinity;
+
+    Object.entries(BBMP_ZONES).forEach(([key, zone]) => {
+      const dx = mouseX - zone.center.x;
+      const dy = mouseY - zone.center.y;
+      const distSq = dx * dx + dy * dy;
+      if (distSq < minDistanceSq) {
+        minDistanceSq = distSq;
+        closestKey = key;
+      }
+    });
+
+    if (closestKey && closestKey !== hoveredZone) {
+      setHoveredZone(closestKey);
+    }
+  };
+
+  const handleMapMouseLeave = () => {
+    setHoveredZone(null);
+    setHoveredProperty(null);
+  };
+
+  const handleMapClick = () => {
+    if (hoveredZone) {
+      const zoneMeta = BBMP_ZONES[hoveredZone];
+      const isSelected =
+        String(activeZone || '').toLowerCase() === hoveredZone.toLowerCase() ||
+        String(activeZone || '').toLowerCase() === (zoneMeta?.name || '').toLowerCase();
+      onSelectZone?.(isSelected ? 'All' : (zoneMeta?.name || hoveredZone));
+    }
+  };
 
   return (
     <div className="rounded-3xl border border-gray-200/90 bg-white p-5 sm:p-7 shadow-sm mb-6">
@@ -298,97 +409,188 @@ function BangalorePropertyPieMap({ properties = [], activeZone, onSelectZone }) 
         <div className="lg:col-span-7 flex flex-col items-center justify-center relative">
           <div className="relative w-full max-w-[560px] aspect-[1024/982] bg-white rounded-3xl p-2 border border-slate-200 shadow-sm overflow-hidden select-none">
             
-            {/* Map Background Graphic directly rendering bangalore_bbmp_map.jpg */}
+            {/* Map Background Graphic directly rendering bangalore_bbmp_map.png */}
             <img
               src={bangaloreBbmpMap}
               alt="Bangalore BBMP Map"
+              style={{ imageRendering: '-webkit-optimize-contrast' }}
               className="absolute inset-0 w-full h-full object-contain pointer-events-none select-none"
             />
 
-            {/* Interactive SVG Overlay for Invisible Hitboxes & Pin Plotting (viewBox: 1024 x 982) */}
-            <svg viewBox="0 0 1024 982" className="relative z-10 w-full h-full drop-shadow-sm">
+            {/* Floating Active / Hovered Zone Badge */}
+            {(hoveredZone || (activeZone && activeZone !== 'All')) && (
+              <div className="absolute top-3 right-3 z-30 pointer-events-none bg-white/95 backdrop-blur-md px-3.5 py-1.5 rounded-xl border border-gray-200/90 shadow-sm flex items-center gap-2 animate-fade-in">
+                <span
+                  className="w-2.5 h-2.5 rounded-full shrink-0 shadow-2xs"
+                  style={{
+                    backgroundColor:
+                      BBMP_ZONES[hoveredZone || ZONE_NAME_TO_ID[activeZone] || activeZone]?.color || '#003366',
+                  }}
+                />
+                <span className="text-xs font-bold text-brand-charcoal">
+                  {BBMP_ZONES[hoveredZone || ZONE_NAME_TO_ID[activeZone] || activeZone]?.name || activeZone}
+                </span>
+                <span className="text-[11px] font-extrabold text-brand-blue">
+                  ({(zoneGroups[hoveredZone || ZONE_NAME_TO_ID[activeZone] || activeZone] || []).length} Verified)
+                </span>
+              </div>
+            )}
+
+            {/* Interactive SVG Overlay for Dynamic Zone Hover & Crisp Pin Plotting (viewBox: 1024 x 982) */}
+            <svg
+              viewBox="0 0 1024 982"
+              className="relative z-10 w-full h-full cursor-pointer"
+              shapeRendering="geometricPrecision"
+              textRendering="geometricPrecision"
+              onMouseMove={handleMapMouseMove}
+              onMouseLeave={handleMapMouseLeave}
+              onClick={handleMapClick}
+            >
               <defs>
-                <filter id="pinGlow" x="-40%" y="-40%" width="180%" height="180%">
-                  <feDropShadow dx="0" dy="2" stdDeviation="2.5" floodColor="#000000" floodOpacity="0.4" />
-                </filter>
+                {/* Standard Base Pin Gradient */}
                 <linearGradient id="googleMapsOrangePink" x1="0%" y1="0%" x2="0%" y2="100%">
                   <stop offset="0%" stopColor="#ff4b4b" />
                   <stop offset="45%" stopColor="#f43f5e" />
                   <stop offset="100%" stopColor="#ea580c" />
                 </linearGradient>
+
+                {/* Vivid Bright Pin Gradient - Activated on Hover */}
+                <linearGradient id="googleMapsBrightGlow" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stopColor="#ff1744" />
+                  <stop offset="35%" stopColor="#ff0055" />
+                  <stop offset="70%" stopColor="#ff3d00" />
+                  <stop offset="100%" stopColor="#ff9100" />
+                </linearGradient>
+
+                {/* Direct Pin Hover Gradient */}
                 <linearGradient id="googleMapsPinkHover" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stopColor="#f472b6" />
+                  <stop offset="0%" stopColor="#ff2a85" />
                   <stop offset="50%" stopColor="#ec4899" />
                   <stop offset="100%" stopColor="#db2777" />
                 </linearGradient>
+
+                {/* Intense Neon Aura Glow Filter for Pin Brightening on Hover */}
+                <filter id="brightPinNeonGlow" x="-60%" y="-60%" width="220%" height="220%">
+                  <feDropShadow dx="0" dy="0" stdDeviation="3.5" floodColor="#ff0055" floodOpacity="0.95" />
+                  <feDropShadow dx="0" dy="0" stdDeviation="8" floodColor="#ff5722" floodOpacity="0.65" />
+                </filter>
               </defs>
 
-              {/* ── Invisible Interactive Zone Hitboxes (NO hover effect on map; triggers pie chart highlight) ── */}
+              {/* ── Invisible Interactive Zone Hitboxes (Guaranteed Pointer Event Capture) ── */}
               {Object.keys(BBMP_ZONES).map((key) => {
                 const zone = BBMP_ZONES[key];
-                const isSelected = activeZone === key || activeZone === zone.name;
+                const isSelected =
+                  String(activeZone || '').toLowerCase() === key.toLowerCase() ||
+                  String(activeZone || '').toLowerCase() === zone.name.toLowerCase();
 
                 return (
                   <path
                     key={zone.id}
                     d={zone.path}
-                    fill="transparent"
-                    stroke="transparent"
-                    strokeWidth={0}
+                    fill="rgba(0, 0, 0, 0.001)"
+                    stroke="none"
+                    style={{ pointerEvents: 'all' }}
                     className="cursor-pointer"
                     onMouseEnter={() => setHoveredZone(key)}
-                    onMouseLeave={() => setHoveredZone(null)}
-                    onClick={() => onSelectZone?.(isSelected ? 'All' : zone.name)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSelectZone?.(isSelected ? 'All' : zone.name);
+                    }}
                   />
                 );
               })}
 
-              {/* ── Google Maps Shaped Property Pins in Vibrant Pink / Orange ── */}
+              {/* ── Crisp, High-Definition Google Maps Style Property Pins that Brighten on Hover ── */}
               {propertyPins.map((pin, i) => {
-                const isPinHovered = hoveredProperty?.id === pin.item.id;
+                const pinId = pin.item.id || pin.item._id;
+                const isPinHovered = Boolean(hoveredProperty) && ((hoveredProperty.id || hoveredProperty._id) === pinId);
+                const isZoneMatch = Boolean(activeHighlightZone) && (
+                  pin.zoneId.toLowerCase() === activeHighlightZone.toLowerCase() ||
+                  pin.zoneName.toLowerCase() === activeHighlightZone.toLowerCase()
+                );
+                const isDimmed = Boolean(activeHighlightZone) && !isZoneMatch;
 
                 return (
                   <g
-                    key={`pin-${pin.item.id || i}`}
+                    key={`pin-${pinId || i}`}
                     transform={`translate(${pin.x}, ${pin.y})`}
-                    className="cursor-pointer"
+                    className={`cursor-pointer transition-opacity duration-200 ${
+                      isDimmed
+                        ? 'opacity-20'
+                        : isZoneMatch || isPinHovered
+                        ? 'opacity-100'
+                        : 'opacity-70'
+                    }`}
                     onMouseEnter={() => {
                       setHoveredProperty(pin.item);
                       setHoveredZone(pin.zoneId);
                     }}
                     onMouseLeave={() => {
                       setHoveredProperty(null);
-                      setHoveredZone(null);
                     }}
                     onClick={(e) => {
                       e.stopPropagation();
-                      navigate(`/property/${pin.item.id}`);
+                      navigate(`/property/${pinId}`);
                     }}
                   >
-                    {/* Ripple Ping Animation on Hover */}
+                    {/* Ripple Ping Animation on Direct Pin Hover */}
                     {isPinHovered && (
-                      <circle cx="0" cy="0" r="15" fill="#f43f5e" opacity="0.45" className="animate-ping" />
+                      <circle cx="0" cy="0" r="16" fill="#f43f5e" opacity="0.45" className="animate-ping" />
                     )}
 
-                    {/* Ground Drop Shadow Ellipse */}
-                    <ellipse cx="0" cy="1" rx="4" ry="1.8" fill="rgba(0,0,0,0.35)" />
+                    {/* Crisp Vector Ground Drop Shadow */}
+                    <ellipse
+                      cx="0"
+                      cy="1.5"
+                      rx={isZoneMatch || isPinHovered ? "7" : "5.5"}
+                      ry={isZoneMatch || isPinHovered ? "2.8" : "2.2"}
+                      fill="rgba(0, 0, 0, 0.3)"
+                      className="transition-all duration-200"
+                    />
 
-                    {/* Google Maps Teardrop Pin Marker */}
+                    {/* Crisp Teardrop Pin Marker that Brightens and Pops on Zone/Pin Hover */}
                     <g
-                      transform={isPinHovered ? "scale(1.25) translate(0, -2)" : "scale(1)"}
-                      style={{ transformOrigin: '0px 0px', transition: 'transform 0.2s ease-out' }}
+                      transform={
+                        isPinHovered
+                          ? "scale(1.4) translate(0, -5)"
+                          : isZoneMatch
+                          ? "scale(1.24) translate(0, -3)"
+                          : isDimmed
+                          ? "scale(0.85)"
+                          : "scale(1)"
+                      }
+                      style={{
+                        transformOrigin: '0px 0px',
+                        transition: 'transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                        filter: isPinHovered || isZoneMatch ? 'url(#brightPinNeonGlow)' : 'none',
+                      }}
                     >
                       <path
-                        d="M 0 0 C -2.5 -4.5 -9 -11 -9 -17.5 A 9 9 0 1 1 9 -17.5 C 9 -11 2.5 -4.5 0 0 Z"
-                        fill={isPinHovered ? "url(#googleMapsPinkHover)" : "url(#googleMapsOrangePink)"}
+                        d="M 0 0 C -3 -5.5 -10.5 -13 -10.5 -20 A 10.5 10.5 0 1 1 10.5 -20 C 10.5 -13 3 -5.5 0 0 Z"
+                        fill={
+                          isPinHovered
+                            ? "url(#googleMapsPinkHover)"
+                            : isZoneMatch
+                            ? "url(#googleMapsBrightGlow)"
+                            : "url(#googleMapsOrangePink)"
+                        }
                         stroke="#ffffff"
-                        strokeWidth="1.6"
+                        strokeWidth={isZoneMatch || isPinHovered ? "2.4" : "1.9"}
                         strokeLinejoin="round"
-                        filter="url(#pinGlow)"
                       />
                       {/* Inner Circular Eye */}
-                      <circle cx="0" cy="-17.5" r="3.2" fill="#ffffff" />
-                      <circle cx="0" cy="-17.5" r="1.5" fill={isPinHovered ? "#db2777" : "#ea580c"} />
+                      <circle
+                        cx="0"
+                        cy="-20"
+                        r={isZoneMatch || isPinHovered ? "4.5" : "4.0"}
+                        fill="#ffffff"
+                      />
+                      <circle
+                        cx="0"
+                        cy="-20"
+                        r={isZoneMatch || isPinHovered ? "2.5" : "2.0"}
+                        fill={isPinHovered ? "#9d174d" : isZoneMatch ? "#ff0055" : "#c2410c"}
+                      />
                     </g>
                   </g>
                 );
@@ -409,8 +611,8 @@ function BangalorePropertyPieMap({ properties = [], activeZone, onSelectZone }) 
                   <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-brand-blue/10 text-brand-blue">
                     {hoveredProperty.bhk || hoveredProperty.propertyType || 'Property'}
                   </span>
-                  <span className="text-xs font-extrabold text-brand-blue">
-                    {formatPropertyDisplayPrice(hoveredProperty).price} {formatPropertyDisplayPrice(hoveredProperty).priceSuffix}
+                  <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                    Verified Deal
                   </span>
                 </div>
                 <h4 className="text-xs font-bold text-brand-charcoal truncate mt-1">
@@ -418,7 +620,7 @@ function BangalorePropertyPieMap({ properties = [], activeZone, onSelectZone }) 
                 </h4>
                 <p className="text-[11px] text-gray-500 truncate">
                   <i className="fa-solid fa-location-dot text-brand-blue mr-1" />
-                  {hoveredProperty.locality || hoveredProperty.location}
+                  {formatPropertyAddress(hoveredProperty) || hoveredProperty.locality || hoveredProperty.location}
                 </p>
               </div>
             )}
@@ -442,12 +644,29 @@ function BangalorePropertyPieMap({ properties = [], activeZone, onSelectZone }) 
             </span>
           </div>
 
-          {/* Clean Pie Chart */}
+          {/* Clean Non-Overlapping Pie Chart */}
           <div className="relative w-[280px] h-[280px] sm:w-[320px] sm:h-[320px] my-3 flex items-center justify-center">
-            <svg viewBox="0 0 300 300" className="w-full h-full drop-shadow-md overflow-visible">
-              <g transform="rotate(-90 150 150)">
-                {pieSlices.map((slice) => {
-                  const isSelected = activeZone === slice.key || activeZone === slice.name;
+            <svg
+              viewBox="0 0 300 300"
+              className="w-full h-full drop-shadow-sm overflow-visible"
+              shapeRendering="geometricPrecision"
+            >
+              {pieSlices.length === 1 && pieSlices[0].isSingleZone ? (
+                <circle
+                  cx="150"
+                  cy="150"
+                  r="136"
+                  fill={pieSlices[0].color}
+                  stroke="#ffffff"
+                  strokeWidth="3"
+                  className="cursor-pointer"
+                  onClick={() => onSelectZone?.('All')}
+                />
+              ) : (
+                pieSlices.map((slice) => {
+                  const isSelected =
+                    String(activeZone || '').toLowerCase() === slice.key.toLowerCase() ||
+                    String(activeZone || '').toLowerCase() === slice.name.toLowerCase();
                   const isHovered = hoveredZone === slice.key;
 
                   return (
@@ -456,34 +675,41 @@ function BangalorePropertyPieMap({ properties = [], activeZone, onSelectZone }) 
                       d={slice.d}
                       fill={slice.color}
                       stroke="#ffffff"
-                      strokeWidth="3"
-                      className="cursor-pointer transition-all duration-300 hover:opacity-95 origin-center"
+                      strokeWidth="2.5"
+                      strokeLinejoin="round"
+                      className="cursor-pointer"
                       style={{
-                        transform: isHovered || isSelected ? 'scale(1.05)' : 'scale(1)',
-                        transformOrigin: '150px 150px',
-                        filter: isHovered || isSelected ? 'drop-shadow(0 6px 12px rgba(0,0,0,0.22))' : 'none',
+                        transform: isHovered || isSelected
+                          ? `translate(${slice.explodeX}px, ${slice.explodeY}px)`
+                          : 'translate(0px, 0px)',
+                        filter: isHovered || isSelected
+                          ? 'drop-shadow(0 4px 10px rgba(0,0,0,0.18))'
+                          : 'none',
+                        transition: 'transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.22s ease-out',
                       }}
                       onMouseEnter={() => setHoveredZone(slice.key)}
                       onMouseLeave={() => setHoveredZone(null)}
                       onClick={() => onSelectZone?.(isSelected ? 'All' : slice.name)}
                     />
                   );
-                })}
-              </g>
+                })
+              )}
             </svg>
           </div>
 
           {/* 8 Slices Legend Grid */}
           <div className="w-full grid grid-cols-2 gap-2 mt-2 pt-4 border-t border-gray-100 text-xs">
-            {pieSlices.map((slice) => {
-              const isSelected = activeZone === slice.key || activeZone === slice.name;
-              const isHovered = hoveredZone === slice.key;
+            {legendList.map((item) => {
+              const isSelected =
+                String(activeZone || '').toLowerCase() === item.key.toLowerCase() ||
+                String(activeZone || '').toLowerCase() === item.name.toLowerCase();
+              const isHovered = hoveredZone === item.key;
 
               return (
                 <div
-                  key={slice.key}
-                  onClick={() => onSelectZone?.(isSelected ? 'All' : slice.name)}
-                  onMouseEnter={() => setHoveredZone(slice.key)}
+                  key={item.key}
+                  onClick={() => onSelectZone?.(isSelected ? 'All' : item.name)}
+                  onMouseEnter={() => setHoveredZone(item.key)}
                   onMouseLeave={() => setHoveredZone(null)}
                   className={`flex items-center justify-between p-2 rounded-xl transition-all cursor-pointer border ${
                     isSelected
@@ -496,14 +722,14 @@ function BangalorePropertyPieMap({ properties = [], activeZone, onSelectZone }) 
                   <div className="flex items-center gap-2 min-w-0">
                     <span
                       className="w-3 h-3 rounded-full shrink-0 shadow-2xs"
-                      style={{ backgroundColor: slice.color }}
+                      style={{ backgroundColor: item.color }}
                     />
                     <span className="text-[11.5px] font-bold text-brand-charcoal truncate">
-                      {slice.name}
+                      {item.name}
                     </span>
                   </div>
                   <span className="text-[11px] font-extrabold text-gray-500 ml-1 shrink-0">
-                    {slice.count}
+                    {item.count}
                   </span>
                 </div>
               );

@@ -1,7 +1,7 @@
 # OneVishwam E-Commerce — Frontend
 
 ## Project Overview
-React + Vite frontend for the OneVishwam multi-service platform (Real Estate, Vehicles, Jewellery, Finance, Groceries, Garments, etc.)
+React + Vite frontend for the OneVishwam multi-service platform (Properties, Vehicles, Jewellery, Finance, Groceries, Garments, etc.)
 
 ## Tech Stack
 - React 18, Vite 5
@@ -35,7 +35,7 @@ src/
 │   ├── home/           # Landing page
 │   ├── services/       # Service-specific galleries/details
 │   │   ├── finance/    # Finance services + Loan products
-│   │   ├── property/   # Real estate
+│   │   ├── property/   # Properties
 │   │   ├── automobile/ # Vehicles
 │   │   ├── jewellery/  # Jewellery & Gold
 │   │   ├── grocery/    # Groceries

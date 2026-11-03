@@ -1,4 +1,4 @@
-import { cities } from '../data/locations';
+import { cities } from '../constants/locations';
 
 const NOMINATIM = 'https://nominatim.openstreetmap.org/reverse';
 

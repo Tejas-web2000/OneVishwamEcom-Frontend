@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { navigateTo } from "../../config/navigation";
 import { cleanProductName } from "../../utils/searchUtils";
+import { useAuth } from "../../store/authSlice";
 
-const FALLBACK_IMG = 'data:image/svg+xml,' + encodeURIComponent(
-  `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400" fill="none"><rect width="600" height="400" fill="#f8fafc"/><rect x="1" y="1" width="598" height="398" stroke="#e2e8f0" stroke-width="2"/><g transform="translate(260, 130)" opacity="0.35"><rect x="10" y="10" width="60" height="45" rx="6" stroke="#334155" stroke-width="3.5" fill="none"/><path d="M25 55 v10 h30 v-10" stroke="#334155" stroke-width="3.5" stroke-linecap="round"/><line x1="15" y1="65" x2="65" y2="65" stroke="#334155" stroke-width="3.5" stroke-linecap="round"/></g><text x="300" y="235" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="700" fill="#475569" text-anchor="middle" letter-spacing="0.5">ONEVISHWAM VERIFIED PRODUCT</text><text x="300" y="255" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="500" fill="#94a3b8" text-anchor="middle">Official Authorized Listing</text></svg>`
-);
+import { ONEVISHWAM_VERIFIED_IMAGE, isPlaceholderImage } from "../../constants/fallbackImage";
+
+const FALLBACK_IMG = ONEVISHWAM_VERIFIED_IMAGE;
 
 /**
  * Modern Generic Product / Listing Card.
@@ -22,33 +23,46 @@ export default React.memo(function ProductCard({
   pincode,
   tags = [],
   badges = [],
+  trustBadge,
   showButton = true,
   theme,
   children,
   hidePrice = false,
+  layout = 'grid',
 }) {
   const [imgError, setImgError] = useState(false);
   const [faved, setFaved] = useState(false);
+  const { isLoggedIn, openAuthModal } = useAuth();
 
-  const isPropertyOrVehicle =
+  const isPropertyOrVehicle = Boolean(
     hidePrice ||
-    (link && (link.includes('/property') || link.includes('/vehicle') || link.includes('/automobile'))) ||
-    (overline && (
-      overline.toLowerCase().includes('property') ||
-      overline.toLowerCase().includes('house') ||
-      overline.toLowerCase().includes('vehicle') ||
-      overline.toLowerCase().includes('car') ||
-      overline.toLowerCase().includes('automobile')
-    ));
+    (link && (link.includes('/property') || link.includes('/vehicle'))) ||
+    (alt && (String(alt).toLowerCase().includes('property') || String(alt).toLowerCase().includes('vehicle')))
+  );
+
+  const handleCardClick = (e) => {
+    if (!link || link === '#') return;
+    if (!isLoggedIn) {
+      if (e && e.preventDefault) e.preventDefault();
+      sessionStorage.setItem('vishwam_auth_redirect', link);
+      openAuthModal('login');
+      return;
+    }
+    navigateTo(link);
+  };
 
   return (
     <div
-      onClick={link ? () => navigateTo(link) : undefined}
-      className="group bg-white rounded-2xl border border-gray-200/80 hover:border-brand-blue/50 overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col cursor-pointer h-full shadow-xs"
+      onClick={handleCardClick}
+      className={`group bg-white rounded-2xl border border-slate-200/90 hover:border-brand-blue/50 overflow-hidden shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex cursor-pointer will-change-transform ${
+        layout === 'list' ? 'flex-col md:flex-row' : 'flex-col h-full'
+      }`}
     >
       {/* ── Image Container ── */}
-      <div className="relative aspect-[16/10] overflow-hidden bg-gray-100 shrink-0">
-        {image && !imgError ? (
+      <div className={`relative overflow-hidden bg-gray-100 shrink-0 ${
+        layout === 'list' ? 'md:w-80 md:h-auto aspect-[16/10] md:aspect-auto' : 'aspect-[16/10]'
+      }`}>
+        {image && !isPlaceholderImage(image) && !imgError ? (
           <img
             src={image}
             alt={alt}
@@ -66,13 +80,16 @@ export default React.memo(function ProductCard({
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent pointer-events-none" />
 
-        {/* Top-Left Badges */}
-        <div className="absolute left-3 top-3 flex flex-wrap gap-1.5 z-10">
+        {/* Top-Left Badges (Homez style) */}
+        <div className="absolute left-3 top-3 flex flex-wrap gap-1.5 z-10 pointer-events-none">
           {badges.map((b, i) => (
             <span
               key={i}
-              className={`rounded-lg px-2.5 py-1 text-xs font-bold tracking-wide shadow-xs backdrop-blur-xs ${b.className}`}
+              className={`rounded-full px-2.5 py-0.5 text-[11px] font-extrabold tracking-wide shadow-xs backdrop-blur-xs flex items-center gap-1.5 ${b.className || 'bg-slate-900/80 text-white'}`}
             >
+              {b.icon !== false && (
+                <i className={`${b.icon || 'fa-solid fa-bolt text-amber-300'} text-[10px]`} />
+              )}
               {b.label}
             </span>
           ))}
@@ -85,7 +102,7 @@ export default React.memo(function ProductCard({
             e.stopPropagation();
             setFaved(!faved);
           }}
-          className="absolute right-3 top-3 w-8 h-8 rounded-full bg-white/90 hover:bg-white text-gray-700 shadow-md backdrop-blur-sm flex items-center justify-center transition-all z-10"
+          className="absolute right-3 top-3 w-8 h-8 rounded-full bg-white/90 hover:bg-white text-gray-700 shadow-md backdrop-blur-sm flex items-center justify-center transition-all z-10 cursor-pointer"
           aria-label="Save to favorites"
         >
           <i className={`${faved ? 'fa-solid text-rose-500' : 'fa-regular text-gray-500'} fa-heart text-xs`} />
@@ -94,11 +111,14 @@ export default React.memo(function ProductCard({
 
       {/* ── Card Body ── */}
       <div className="p-4 flex flex-col flex-1 gap-2.5">
-        {/* Overline / Property Type */}
+        {/* Overline / Subcategory */}
         {overline && (
-          <p className="text-xs text-brand-blue font-bold uppercase tracking-wider">
-            {overline}
-          </p>
+          <div className="flex items-center gap-1.5">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-blue-50 border border-blue-150/70 text-[11px] font-extrabold uppercase tracking-wider text-brand-blue">
+              <i className={`${isPropertyOrVehicle ? 'fa-solid fa-house-chimney' : 'fa-solid fa-tag'} text-[10px] text-brand-blue`} />
+              {overline}
+            </span>
+          </div>
         )}
 
         {/* Title */}
@@ -116,85 +136,97 @@ export default React.memo(function ProductCard({
             <i className="fa-solid fa-location-dot text-brand-blue text-xs shrink-0" />
             <span className="truncate">
               {location}
-              {pincode ? ` · ${pincode}` : ""}
+              {pincode && !/\b\d{6}\b/.test(location) && !String(location).includes(pincode) ? ` · ${pincode}` : ""}
             </span>
           </div>
         )}
 
-        {/* Specs / Detail Tags */}
-        {tags.length > 0 && (
-          <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
-            {tags.map((t, i) => {
-              if (!t || String(t).trim().toLowerCase() === 'plots' || String(t).trim().toLowerCase() === 'plot') return null;
-              const isFacing = String(t).startsWith('Door Facing') || String(t).startsWith('Facing');
-              const isCorner = String(t).startsWith('Corner');
-              return (
-                <span
-                  key={i}
-                  className={`font-semibold text-xs rounded-lg px-2.5 py-1 whitespace-nowrap flex items-center gap-1.5 ${
-                    isCorner
-                      ? 'bg-purple-50 text-purple-800 border border-purple-200/80 shadow-2xs'
-                      : isFacing
-                      ? 'bg-amber-50 text-amber-800 border border-amber-200/80 shadow-2xs'
-                      : 'bg-gray-100 text-gray-700'
-                  }`}
-                >
-                  {isCorner && <i className="fa-solid fa-vector-square text-purple-600 text-xs" />}
-                  {isFacing && <i className="fa-solid fa-compass text-amber-600 text-xs" />}
-                  {t}
-                </span>
-              );
-            })}
+        {/* Specs / Detail Tags (Homez style metadata) */}
+        {tags.length > 0 && (() => {
+          const splitTags = tags.flatMap((t) => {
+            if (!t) return [];
+            const str = String(t).trim();
+            if (/[\u00b7\u2022\u2219\u2027\u25cf\u25cb\u2043\u2218•·|]/.test(str)) {
+              return str.split(/\s*[\u00b7\u2022\u2219\u2027\u25cf\u25cb\u2043\u2218•·|]\s*/).map((s) => s.trim()).filter(Boolean);
+            }
+            return [str];
+          });
+          return (
+            <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+              {splitTags.map((t, i) => {
+                if (!t) return null;
+                const tStr = String(t).trim();
+                const isPropType = isPropertyOrVehicle && ['flat', 'plot', 'land', 'independent house', 'residential', 'commercial', 'industrial', 'agricultural', 'villa', 'apartment'].some(type => tStr.toLowerCase() === type);
+                const isFacing = tStr.startsWith('Door Facing') || tStr.startsWith('Facing');
+                const isCorner = tStr.startsWith('Corner');
+                const isBhk = /\d+\s*bhk/i.test(tStr);
+                const isSqft = /sq\.?ft|sqft|sq\s*ft|acres?|guntas?/i.test(tStr);
+                const isUnits = /\b\d+\s*units?\b/i.test(tStr);
+                const isBath = /bath/i.test(tStr);
+                return (
+                  <span
+                    key={i}
+                    className={`font-semibold text-xs rounded-lg px-2.5 py-1 max-w-full inline-flex items-center gap-1.5 ${
+                      isPropType
+                        ? 'bg-blue-50 text-brand-blue border border-blue-200/80 font-bold shadow-2xs'
+                        : isCorner
+                        ? 'bg-purple-50 text-purple-800 border border-purple-200/80 shadow-2xs'
+                        : isFacing
+                        ? 'bg-amber-50 text-amber-800 border border-amber-200/80 shadow-2xs'
+                        : isUnits
+                        ? 'bg-emerald-50 text-emerald-800 border border-emerald-200/80 shadow-2xs'
+                        : 'bg-slate-100 text-slate-700'
+                    }`}
+                  >
+                    {isPropType && <i className="fa-solid fa-house-chimney text-brand-blue text-[11px] shrink-0" />}
+                    {isCorner && <i className="fa-solid fa-vector-square text-purple-600 text-xs shrink-0" />}
+                    {isFacing && <i className="fa-solid fa-compass text-amber-600 text-xs shrink-0" />}
+                    {isBhk && <i className="fa-solid fa-bed text-brand-blue text-[11px] shrink-0" />}
+                    {isSqft && <i className="fa-solid fa-ruler-combined text-brand-blue text-[11px] shrink-0" />}
+                    {isUnits && <i className="fa-solid fa-building text-emerald-600 text-[11px] shrink-0" />}
+                    {isBath && <i className="fa-solid fa-shower text-brand-blue text-[11px] shrink-0" />}
+                    <span className="truncate">{t}</span>
+                  </span>
+                );
+              })}
+            </div>
+          );
+        })()}
+
+        {/* Trust Badge (e.g. Bank Approved) */}
+        {trustBadge && (
+          <div className="pt-0.5">
+            {typeof trustBadge === 'string' ? (
+              <span className="inline-flex items-center gap-1.5 rounded-lg bg-blue-50 border border-blue-150/80 px-2.5 py-1 text-xs font-bold text-brand-blue">
+                <i className="fa-solid fa-building-columns text-[10px] text-brand-blue" />
+                {trustBadge}
+              </span>
+            ) : (
+              trustBadge
+            )}
           </div>
         )}
 
         {/* Extra children (Agent info, Loan banners, etc.) */}
         {children && <div className="pt-1">{children}</div>}
 
-        {/* ── Card Footer: Contact Us / Price ── */}
+        {/* ── Card Footer: Are You Interested? ── */}
         <div className="mt-auto pt-3 border-t border-gray-100 flex items-center justify-between gap-2">
-          {isPropertyOrVehicle ? (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                window.dispatchEvent(
-                  new CustomEvent('onevishwam:open_enquiry_modal', {
-                    detail: { title: title || 'Property / Vehicle Enquiry' },
-                  })
-                );
-              }}
-              className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 px-4 py-2 text-xs sm:text-sm font-extrabold transition-all shadow-xs hover:shadow-md cursor-pointer"
-            >
-              <i className="fa-solid fa-envelope text-xs" />
-              <span>Contact Us</span>
-            </button>
-          ) : (
-            <div className="min-w-0">
-              {priceOverride ? (
-                priceOverride
-              ) : (
-                price && (
-                  <div>
-                    <span
-                      className={`leading-tight block truncate ${
-                        String(price).trim().toLowerCase() === 'this is negotiable'
-                          ? 'text-sm font-normal text-gray-500'
-                          : 'text-base sm:text-lg font-extrabold text-brand-charcoal'
-                      }`}
-                    >
-                      {price}
-                    </span>
-                    {priceSuffix && (
-                      <span className="text-xs font-semibold text-gray-400 block truncate">
-                        {priceSuffix}
-                      </span>
-                    )}
-                  </div>
-                )
-              )}
-            </div>
-          )}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              window.dispatchEvent(
+                new CustomEvent('onevishwam:open_enquiry_modal', {
+                  detail: { title: title || 'Product Enquiry' },
+                })
+              );
+            }}
+            className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 px-4 py-2.5 text-xs sm:text-sm font-extrabold transition-all shadow-xs hover:shadow-md cursor-pointer active:scale-[0.98]"
+          >
+            <i className="fa-solid fa-handshake-angle text-xs text-slate-950" />
+            <span>Are You Interested?</span>
+          </button>
         </div>
       </div>
     </div>

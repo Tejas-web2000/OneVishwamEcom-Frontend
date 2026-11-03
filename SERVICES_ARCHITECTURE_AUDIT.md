@@ -20,7 +20,7 @@ All sector pages (`Property`, `Automobile`, `Grocery`, `Garments`, `Jewellery`) 
 
 | Sector | Listing Page | Detail Page | Master Listing Engine | Master Detail Engine | Domain Components |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Real Estate** | `PropertyGallery.jsx` | `PropertyDetails.jsx` | `MasterListingPage` | `MasterDetailPage` | `PropertySpecsGrid`, `PropertyAmenitiesGrid`, `PropertyDescriptionCard`, `PropertyFactsCard`, `PropertyActionsCard`, `PropertyLoanCard`, `PropertyGalleryModal` |
+| **Properties** | `PropertyGallery.jsx` | `PropertyDetails.jsx` | `MasterListingPage` | `MasterDetailPage` | `PropertySpecsGrid`, `PropertyAmenitiesGrid`, `PropertyDescriptionCard`, `PropertyFactsCard`, `PropertyActionsCard`, `PropertyLoanCard`, `PropertyGalleryModal` |
 | **Automobile** | `AutomobileGallery.jsx` | `VehicleDetails.jsx` | `MasterListingPage` | `MasterDetailPage` | `VehicleSpecsGrid`, `VehicleShowroomCard`, `VehicleLoanCard`, `VehicleContactCard`, `VehicleFinancePanel`, `VehicleQuickMatchModal` |
 | **Groceries** | `GroceryGallery.jsx` | `GroceryDetails.jsx` | `MasterListingPage` | `MasterDetailPage` | `GroceryCertifications`, `GroceryOrderSection`, `GroceryVendorCard`, `GroceryFilterSidebar` |
 | **Garments** | `GarmentGallery.jsx` | `GarmentDetails.jsx` | `MasterListingPage` | `MasterDetailPage` | `GarmentSpecsGrid`, `GarmentStoreCard`, `GarmentPriceSummaryCard`, `GarmentFilterSidebar` |

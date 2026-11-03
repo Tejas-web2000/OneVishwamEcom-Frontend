@@ -16,7 +16,7 @@
  */
 
 import { useLocation } from '../store/locationSlice';
-import { cities } from '../data/locations';
+import { cities } from '../constants/locations';
 
 const DEFAULT_SORT_OPTIONS = [
   { value: 'latest',     label: 'Latest' },

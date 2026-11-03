@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { navigateTo } from '../../../config/navigation';
-import { cities } from '../../../data/locations';
+import { cities } from '../../../constants/locations';
 import { ActiveChip } from '../../../components/ui';
 import FinanceCard from './FinanceCard';
 import FinanceFilterSidebar from './FinanceFilterSidebar';

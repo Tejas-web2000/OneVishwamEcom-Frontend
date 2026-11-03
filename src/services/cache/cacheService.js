@@ -15,15 +15,30 @@
  * ============================================================================
  */
 
+import { memoryCache } from '../../utils/lruCache';
+
 const STORAGE_PREFIX = 'onevishwam_cache';
-const CACHE_VERSION = 1;
+const CACHE_VERSION = 5;
+
+// Auto-purge stale cache keys from localStorage across previous versions
+try {
+  const currentPrefix = `${STORAGE_PREFIX}_v${CACHE_VERSION}_`;
+  for (let i = localStorage.length - 1; i >= 0; i--) {
+    const k = localStorage.key(i);
+    if (k && k.startsWith(STORAGE_PREFIX) && !k.startsWith(currentPrefix)) {
+      localStorage.removeItem(k);
+    }
+  }
+} catch {
+  /* storage unavailable in private browsing or server context */
+}
 
 /** Configurable freshness lifetimes (ms) — tune per data type, never hardcode. */
 export const CACHE_TTL = {
   user: 30 * 60 * 1000, // 30 min — profile, revalidated after login
-  products: 10 * 60 * 1000, // 10 min — listing collections / lists
-  detail: 30 * 1000, // 30 sec — single listing detail (short TTL for fresh data)
-  similar: 10 * 60 * 1000, // 10 min — "similar items"
+  products: import.meta.env.DEV ? 5 * 1000 : 2 * 60 * 1000, // 5s in dev, 2 min in prod
+  detail: 15 * 1000, // 15 sec — single listing detail (short TTL for fresh data)
+  similar: import.meta.env.DEV ? 5 * 1000 : 5 * 60 * 1000,
 };
 
 export const PUBLIC_NAMESPACE = 'public';
@@ -73,18 +88,35 @@ const inflight = new Map();
 
 export const cache = {
   get(namespace, key) {
-    return safeRead(storageKey(namespace, key));
+    const sKey = storageKey(namespace, key);
+    // L1: In-memory O(1) LRU Cache lookup (zero main-thread JSON parsing lag)
+    const memRecord = memoryCache.get(sKey);
+    if (memRecord) return memRecord;
+
+    // L2: Persistent localStorage fallback
+    const diskRecord = safeRead(sKey);
+    if (diskRecord) {
+      memoryCache.set(sKey, diskRecord);
+      return diskRecord;
+    }
+    return null;
   },
 
   set(namespace, key, data, params = {}) {
     const record = { data, params, cachedAt: Date.now(), version: CACHE_VERSION };
-    safeWrite(storageKey(namespace, key), record);
+    const sKey = storageKey(namespace, key);
+    // Write to L1 Memory LRU
+    memoryCache.set(sKey, record);
+    // Write to L2 Persistent localStorage
+    safeWrite(sKey, record);
     return record;
   },
 
   remove(namespace, key) {
+    const sKey = storageKey(namespace, key);
+    memoryCache.delete(sKey);
     try {
-      localStorage.removeItem(storageKey(namespace, key));
+      localStorage.removeItem(sKey);
     } catch {
       /* ignore */
     }
@@ -98,7 +130,10 @@ export const cache = {
       const k = localStorage.key(i);
       if (k && k.startsWith(start + prefix)) doomed.push(k);
     }
-    doomed.forEach((k) => localStorage.removeItem(k));
+    doomed.forEach((k) => {
+      memoryCache.delete(k);
+      localStorage.removeItem(k);
+    });
   },
 
   clearNamespace(namespace) {
@@ -106,6 +141,7 @@ export const cache = {
   },
 
   clear() {
+    memoryCache.clear();
     const start = `${STORAGE_PREFIX}_v${CACHE_VERSION}_`;
     const doomed = [];
     for (let i = 0; i < localStorage.length; i++) {

@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { navigateTo } from '../../../config/navigation';
 import { useProperties } from '../../../hooks/useProperties';
-import { cities } from '../../../data/locations';
+import { cities } from '../../../constants/locations';
 import { getTotalPropertyPrice, getNumericPrice, matchesBudgetRange } from './propertyHelpers';
 
 function getCardType(property) {
@@ -28,7 +28,16 @@ function matchesBedroom(bhk, selected) {
 }
 
 const CITY_OPTIONS = [{ id: 'bengaluru', label: 'Bangalore' }];
-const PROPERTY_TYPES = ['Sites', 'Flat', 'Villa', 'Independent House'];
+const PROPERTY_TYPES = [
+  'Residential',
+  'Flat',
+  'Independent House',
+  'Plot',
+  'Land',
+  'Agricultural',
+  'Commercial',
+  'Industrial',
+];
 const BEDROOM_OPTIONS = ['1RK', '1BHK', '2BHK', '3BHK', '4BHK', '4BHK+'];
 
 /* ── Component ── */
@@ -78,7 +87,25 @@ function QuickMatchModal({ onClose }) {
         budgetMin ? +budgetMin * 100000 : null,
         budgetMax ? +budgetMax * 100000 : null
       );
-      const typeMatch = !propertyType || cardType === propertyType;
+      const rawProp = String(p.propertyType || p.subcategory || '').toLowerCase();
+      const cardTypeLower = String(cardType || '').toLowerCase();
+      const typeMatch = !propertyType || (
+        propertyType === 'Flat'
+          ? (cardTypeLower.includes('flat') || cardTypeLower.includes('villa') || rawProp.includes('flat') || rawProp.includes('villa') || rawProp.includes('apartment'))
+          : propertyType === 'Plot'
+          ? (cardTypeLower.includes('site') || cardTypeLower.includes('plot') || rawProp.includes('plot') || rawProp.includes('layout') || rawProp.includes('plat'))
+          : propertyType === 'Land'
+          ? (rawProp.includes('land') && !rawProp.includes('agri'))
+          : propertyType === 'Independent House'
+          ? (rawProp.includes('house') || rawProp.includes('independent'))
+          : propertyType === 'Agricultural'
+          ? (rawProp.includes('agri') || rawProp.includes('farm'))
+          : propertyType === 'Commercial'
+          ? (rawProp.includes('commercial') || cardTypeLower.includes('commercial'))
+          : propertyType === 'Industrial'
+          ? (rawProp.includes('industrial') || cardTypeLower.includes('industrial'))
+          : (rawProp.includes(propertyType.toLowerCase()) || cardTypeLower.includes(propertyType.toLowerCase()))
+      );
       const cityMatch = !city || p.city === city;
       const locationMatch = !location || p.zone === location;
       const bedroomMatch = matchesBedroom(p.bhk, bedrooms);
@@ -262,7 +289,7 @@ function QuickMatchModal({ onClose }) {
                   )}
 
                   <button onClick={handleFindMatch}
-                    className="w-full rounded-xl bg-brand-navy py-3 text-sm font-semibold text-white hover:bg-brand-charcoal transition-colors flex items-center justify-center gap-2">
+                    className="w-full rounded-xl bg-brand-blue py-3 text-sm font-bold text-white hover:bg-brand-navy transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer">
                     <i className="fa-solid fa-magnifying-glass" />
                     Find Matching Properties
                   </button>
@@ -298,7 +325,7 @@ function QuickMatchModal({ onClose }) {
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-semibold text-brand-charcoal truncate">{p.title}</p>
                           <p className="text-xs text-gray-500 truncate">{p.location}</p>
-                          <p className="text-xs font-bold text-brand-blue mt-0.5">{p.price}{p.priceSuffix ? ` ${p.priceSuffix}` : ''}</p>
+                          <p className="text-xs font-semibold text-emerald-700 mt-0.5">Price on Request</p>
                         </div>
                         <button onClick={() => navigateTo(`/property/${p.id}`)}
                           className="ml-3 shrink-0 rounded-lg bg-brand-blue px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 transition-colors">
@@ -323,7 +350,7 @@ function QuickMatchModal({ onClose }) {
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-semibold text-brand-charcoal truncate">{p.title}</p>
                           <p className="text-xs text-gray-500 truncate">{p.location}</p>
-                          <p className="text-xs font-bold text-brand-blue mt-0.5">{p.price}{p.priceSuffix ? ` ${p.priceSuffix}` : ''}</p>
+                          <p className="text-xs font-semibold text-emerald-700 mt-0.5">Price on Request</p>
                         </div>
                         <button onClick={() => navigateTo(`/property/${p.id}`)}
                           className="ml-3 shrink-0 rounded-lg bg-brand-blue px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 transition-colors">

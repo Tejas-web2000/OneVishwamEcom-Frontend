@@ -4,6 +4,8 @@
  */
 
 import { cleanProductName } from '../../../utils/searchUtils';
+import { formatPropertyAddress, isOneVishwamProperty } from '../../../pages/services/property/propertyHelpers';
+import { ONEVISHWAM_VERIFIED_IMAGE, isPlaceholderImage } from '../../../constants/fallbackImage';
 
 function isPerSqft(priceStr = '', suffix = '') {
   const combined = `${priceStr} ${suffix}`.toLowerCase();
@@ -26,27 +28,39 @@ export function mapPropertyToEntityItem(property) {
   if (!property) return null;
 
   const id = property.id || property._id || '';
-  const title = cleanProductName(property.propertyName || property.title || 'Featured Property');
-  const rawPrice = property.rawPrice || property.price || property.expectedPrice || property.priceRange?.formattedMin || '';
-  const rawSuffix = property.rawPriceSuffix || property.priceSuffix || '';
+  const title = cleanProductName(property.title || 'Featured Property');
+  const rawPrice = property.price || property.rawPrice || '';
+  const rawSuffix = property.priceSuffix || '';
   const inSqft = isPerSqft(rawPrice, rawSuffix);
   const price = inSqft ? rawPrice : 'This is negotiable';
   const priceSubtext = inSqft ? (rawSuffix || (property.negotiable ? 'Negotiable' : (property.priceRange?.isRange ? 'Onwards' : ''))) : '';
-  const location = property.location || property.city || property.address || '';
+  const location = formatPropertyAddress(property) || property.location || property.city || property.address || '';
   const pincode = property.pincode || '';
 
   // Images resolution
-  const images = [];
+  const rawImages = [];
   if (property.images && Array.isArray(property.images) && property.images.length > 0) {
-    images.push(...property.images);
+    rawImages.push(...property.images);
   } else if (property.coverImage) {
-    images.push(property.coverImage);
+    rawImages.push(property.coverImage);
   } else if (property.image) {
-    images.push(property.image);
+    rawImages.push(property.image);
+  }
+  const images = rawImages.filter((img) => img && !isPlaceholderImage(img));
+  if (images.length === 0) {
+    images.push(ONEVISHWAM_VERIFIED_IMAGE);
   }
 
   // Badges resolution
   const badges = [];
+  const vendor = String(property.vendorName || property.vendor || '').trim().toLowerCase().replace(/\s+/g, '');
+  const partner = String(property.channelPartnerName || property.channelPartner || property.partnerName || property.partner || '').trim().toLowerCase().replace(/\s+/g, '');
+  if (vendor.includes('onevishwam') || partner.includes('onevishwam') || isOneVishwamProperty(property)) {
+    badges.push({
+      label: 'In-House Project',
+      className: 'bg-indigo-600 text-white font-bold',
+    });
+  }
   if (property.status) {
     badges.push({
       label: property.status === 'approved' ? 'Verified' : property.status,
@@ -61,14 +75,7 @@ export function mapPropertyToEntityItem(property) {
   }
 
   const details = property.details || {};
-  const isCorner =
-    property.isCornerPlot ||
-    property.cornerPlot ||
-    property.isCornerSite ||
-    property.cornerSite ||
-    property.cornerPlotAvailable ||
-    details.cornerPlot ||
-    details.isCornerPlot;
+  const isCorner = Boolean(property.cornerPlot);
 
   if (isCorner) {
     badges.push({ label: 'Corner Site', className: 'bg-purple-600 text-white font-bold' });
@@ -76,22 +83,22 @@ export function mapPropertyToEntityItem(property) {
 
   // Key Attributes (Dynamic Highlights)
   const keyAttributes = [];
-  const pType = property.propertyType || property.category || property.type;
+  const pType = property.subcategory || property.propertyType || property.category;
   if (pType) {
     keyAttributes.push({ label: 'Type', value: String(pType) });
   }
 
-  const bhk = details.bhk || property.bhk;
+  const bhk = property.bhk;
   if (bhk) {
     keyAttributes.push({ label: 'Configuration', value: String(bhk) });
   }
 
-  const area = details.superBuiltUpArea || details.totalLandArea || details.totalLandExtent || property.superBuiltUpArea || property.dimensions;
+  const area = property.area || property.area_sqft || property.dimensions;
   if (area) {
     keyAttributes.push({ label: 'Area / Dimensions', value: String(area) });
   }
 
-  const facing = details.facing || property.facing;
+  const facing = property.facing;
   if (facing) {
     keyAttributes.push({ label: 'Door Facing', value: String(facing) });
   }
@@ -140,10 +147,10 @@ export function mapPropertyToEntityItem(property) {
 
   // Seller Information
   const seller = {
-    name: property.vendorName || property.channelPartnerName || property.builderName || 'OneVishwam Partner',
-    type: property.channelPartnerName ? 'Channel Partner' : (property.builderName ? 'Verified Builder' : 'Authorized Associate'),
-    phone: property.contactPhone || '8546996622',
-    whatsapp: property.whatsapp || property.contactPhone || '8546996622',
+    name: property.vendorName || property.channelPartnerName || 'OneVishwam Partner',
+    type: property.channelPartnerName ? 'Channel Partner' : 'Authorized Associate',
+    phone: property.contact || '8546996622',
+    whatsapp: property.whatsapp || property.contact || '8546996622',
     email: property.email || 'ceo@onevishwam.com',
     verified: true,
   };
@@ -158,7 +165,7 @@ export function mapPropertyToEntityItem(property) {
     images,
     badges,
     keyAttributes,
-    description: property.description || property.overviewText || 'Verified residential/commercial property listed under the OneVishwam network with complete legal and bank loan assistance.',
+    description: property.description || 'Verified residential/commercial property listed under the OneVishwam network with complete legal and bank loan assistance.',
     specs,
     seller,
     raw: property,
@@ -187,7 +194,11 @@ export function mapVehicleToEntityItem(vehicle) {
   const location = vehicle.location || vehicle.showroom?.city || 'Bangalore';
   const pincode = vehicle.pincode || vehicle.showroom?.pincode || '';
 
-  const images = Array.isArray(vehicle.images) ? vehicle.images : (vehicle.image ? [vehicle.image] : []);
+  const rawImages = Array.isArray(vehicle.images) ? vehicle.images : (vehicle.image ? [vehicle.image] : []);
+  const images = rawImages.filter((img) => img && !isPlaceholderImage(img));
+  if (images.length === 0) {
+    images.push(ONEVISHWAM_VERIFIED_IMAGE);
+  }
 
   const badges = [];
   if (vehicle.loanApproved) {
@@ -254,8 +265,21 @@ export function mapVehicleToEntityItem(vehicle) {
   };
 
   return {
+    ...vehicle,
     id,
     title,
+    brand: vehicle.brand || '',
+    model: vehicle.model || '',
+    year: vehicle.year || '',
+    fuelType: vehicle.fuelType || '',
+    transmission: vehicle.transmission || '',
+    wheelerType: vehicle.wheelerType || vehicle.category || '4-wheeler',
+    category: vehicle.category || 'Automobiles',
+    condition: vehicle.condition || 'new',
+    kmDriven: vehicle.kmDriven !== undefined ? vehicle.kmDriven : 0,
+    showroom: vehicle.showroom || null,
+    variants: vehicle.variants || [],
+    overviewHighlights: vehicle.overviewHighlights || keyAttributes,
     price,
     priceSubtext,
     location,
@@ -263,9 +287,159 @@ export function mapVehicleToEntityItem(vehicle) {
     images,
     badges,
     keyAttributes,
-    description: `Brand-new or verified pre-owned ${title} available with comprehensive loan approvals, doorstep test drive assistance, and full warranty support under the OneVishwam Automotive Network.`,
+    description: vehicle.description || `Brand-new or verified pre-owned ${title} available with comprehensive loan approvals, doorstep test drive assistance, and full warranty support under the OneVishwam Automotive Network.`,
     specs,
     seller,
     raw: vehicle,
+  };
+}
+
+/**
+ * Transforms a Loan entity into a unified EntityItem.
+ */
+export function mapLoanToEntityItem(loan) {
+  if (!loan) return null;
+
+  const id = loan.id || loan._id || '';
+  const title = cleanProductName(loan.title || 'Loan Product');
+  const price = loan.interestRate ? `From ${loan.interestRate}` : 'Competitive Rates';
+  const priceSubtext = loan.maxAmount ? `Up to ${loan.maxAmount}` : '';
+  const location = 'Bengaluru & Pan-India';
+
+  const rawImages = loan.image ? [loan.image] : [];
+  const images = rawImages.filter((img) => img && !isPlaceholderImage(img));
+  if (images.length === 0) {
+    images.push(ONEVISHWAM_VERIFIED_IMAGE);
+  }
+
+  const badges = [
+    { label: 'Pre-Approved', className: 'bg-emerald-600 text-white' },
+    { label: loan.type ? `${String(loan.type).toUpperCase()} LOAN` : 'LOAN', className: 'bg-brand-blue text-white' },
+  ];
+
+  const keyAttributes = [
+    { label: 'Interest Rate', value: loan.interestRate || 'Competitive' },
+    { label: 'Max Loan Amount', value: loan.maxAmount || 'Up to ₹2 Cr' },
+    { label: 'Tenure', value: loan.tenure || 'Up to 30 Years' },
+    { label: 'Processing Fee', value: loan.processingFee || 'Minimal' },
+  ];
+
+  const specs = [
+    {
+      groupName: 'Loan Parameters & Terms',
+      items: [
+        { key: 'Product Type', value: loan.title || 'Loan' },
+        { key: 'Interest Rate', value: loan.interestRate || 'Starting from 8.5% p.a.' },
+        { key: 'Max Loan Amount', value: loan.maxAmount || '₹50 Lakhs - ₹2 Crores' },
+        { key: 'Max Tenure', value: loan.tenure || 'Up to 30 Years' },
+        { key: 'Processing Fee', value: loan.processingFee || '0.5% - 1%' },
+      ],
+    },
+    {
+      groupName: 'Application & Eligibility',
+      items: [
+        { key: 'Approval Time', value: 'Instant pre-approval online' },
+        { key: 'Disbursal Timeline', value: 'Within 3 - 7 banking days' },
+        { key: 'Required Documents', value: 'PAN, Aadhaar, Income Proof / ITR' },
+      ],
+    },
+  ];
+
+  const seller = {
+    name: 'OneVishwam Banking & Finance Desk',
+    type: 'Authorized Lending Partner',
+    phone: '8546996622',
+    whatsapp: '8546996622',
+    email: 'finance@onevishwam.com',
+    verified: true,
+  };
+
+  return {
+    id,
+    title,
+    price,
+    priceSubtext,
+    location,
+    pincode: '560001',
+    images,
+    badges,
+    keyAttributes,
+    description: loan.subtitle
+      ? `${loan.subtitle}. Complete loan assistance, door-step documentation, and fast disbursal across verified banks and NBFC partners.`
+      : 'Complete loan assistance, door-step documentation, and fast disbursal across verified banks and NBFC partners.',
+    specs,
+    seller,
+    raw: loan,
+  };
+}
+
+/**
+ * Transforms a Finance Service entity into a unified EntityItem.
+ */
+export function mapFinanceServiceToEntityItem(service) {
+  if (!service) return null;
+
+  const id = service.id || service._id || '';
+  const title = cleanProductName(service.serviceName || service.title || 'Financial Service');
+  const price = service.interestRate && service.interestRate !== 'N/A'
+    ? `${service.interestRate}`
+    : (service.minAmount ? `From ₹${service.minAmount}` : 'Custom Quote');
+  const priceSubtext = service.maxAmount ? `Up to ₹${service.maxAmount}` : '';
+  const location = service.location || service.city || 'Bengaluru';
+
+  const rawImages = service.banner
+    ? [service.banner]
+    : (service.logo ? [service.logo] : []);
+  const images = rawImages.filter((img) => img && !isPlaceholderImage(img));
+  if (images.length === 0) {
+    images.push(ONEVISHWAM_VERIFIED_IMAGE);
+  }
+
+  const badges = [
+    { label: service.category || 'Finance', className: 'bg-brand-blue text-white' },
+    { label: service.providerType || 'Verified Partner', className: 'bg-emerald-600 text-white' },
+  ];
+
+  const keyAttributes = [
+    { label: 'Category', value: service.category || 'Finance' },
+    { label: 'Tenure', value: service.tenure || 'Flexible' },
+    { label: 'Processing', value: service.processingTime || 'Fast Track' },
+  ];
+
+  const specs = [
+    {
+      groupName: 'Service Information',
+      items: [
+        { key: 'Provider', value: service.companyName || 'OneVishwam Partner' },
+        { key: 'Category', value: service.category || 'Finance' },
+        { key: 'Tenure', value: service.tenure || 'Flexible' },
+        { key: 'Processing Time', value: service.processingTime || 'Fast' },
+      ],
+    },
+  ];
+
+  const seller = {
+    name: service.companyName || 'OneVishwam Banking Desk',
+    type: service.providerType || 'Financial Service Partner',
+    phone: service.contactPhone || '8546996622',
+    whatsapp: '8546996622',
+    email: service.contactEmail || 'finance@onevishwam.com',
+    verified: true,
+  };
+
+  return {
+    id,
+    title,
+    price,
+    priceSubtext,
+    location,
+    pincode: service.pincode || '',
+    images,
+    badges,
+    keyAttributes,
+    description: service.description || 'Verified banking and financial lending services listed under the OneVishwam network.',
+    specs,
+    seller,
+    raw: service,
   };
 }

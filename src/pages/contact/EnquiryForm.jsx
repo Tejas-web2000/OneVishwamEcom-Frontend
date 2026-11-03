@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import emailjs from '@emailjs/browser';
 import Swal from 'sweetalert2';
 import API from '../../services/api';
-import { serviceItems } from '../../data/servicesContent';
+import { serviceItems } from '../../constants/servicesContent';
 import Field from '../../components/Field';
 import { uploadAudioToCloudinary } from '../../utils/uploadAudioToCloudinary';
 import { EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, EMAILJS_PUBLIC_KEY, isEmailJSConfigured } from '../../config/emailjs';

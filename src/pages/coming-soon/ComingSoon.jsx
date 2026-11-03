@@ -1,8 +1,8 @@
 import React from 'react';
 import { useSearchParams } from 'react-router-dom';
 import LottieComingSoon from '../../components/common/LottieComingSoon';
-import { marketplaceCategories } from '../../data/categoriesData';
-import { serviceItems, serviceIconMap } from '../../data/servicesContent';
+import { marketplaceCategories } from '../../constants/categoriesData';
+import { serviceItems, serviceIconMap } from '../../constants/servicesContent';
 
 export default function ComingSoon() {
   const [params] = useSearchParams();

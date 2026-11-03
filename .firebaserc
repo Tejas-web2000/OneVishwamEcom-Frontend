@@ -1,0 +1,15 @@
+{
+  "projects": {
+    "default": "onevishwam"
+  },
+  "targets": {
+    "onevishwam": {
+      "hosting": {
+        "frontend": [
+          "onevishwam"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}

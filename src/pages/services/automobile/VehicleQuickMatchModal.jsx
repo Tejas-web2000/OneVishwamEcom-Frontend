@@ -171,7 +171,7 @@ export default function VehicleQuickMatchModal({ onClose }) {
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-semibold text-brand-charcoal truncate">{v.brand} {v.model}</p>
                           <p className="text-xs text-gray-500">{v.location}</p>
-                          <p className="text-xs font-bold text-brand-blue mt-0.5">{withRupeeSymbol(v.price)}</p>
+                          <p className="text-xs font-semibold text-emerald-700 mt-0.5">Price on Request</p>
                         </div>
                         <button onClick={() => navigateTo(`/automobile`)}
                           className="ml-3 shrink-0 rounded-lg bg-brand-blue px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 transition-colors">
@@ -195,7 +195,7 @@ export default function VehicleQuickMatchModal({ onClose }) {
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-semibold text-brand-charcoal truncate">{v.brand} {v.model}</p>
                           <p className="text-xs text-gray-500">{v.location}</p>
-                          <p className="text-xs font-bold text-brand-blue mt-0.5">{withRupeeSymbol(v.price)}</p>
+                          <p className="text-xs font-semibold text-emerald-700 mt-0.5">Price on Request</p>
                         </div>
                         <button onClick={() => navigateTo(`/automobile`)}
                           className="ml-3 shrink-0 rounded-lg bg-brand-blue px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 transition-colors">

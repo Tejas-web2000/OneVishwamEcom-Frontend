@@ -3,7 +3,7 @@ import React from 'react';
 /**
  * SectorPageTemplate
  * ─────────────────
- * Master layout wrapper for every sector gallery/listing page (Real Estate,
+ * Master layout wrapper for every sector gallery/listing page (Properties,
  * Automobiles, Grocery, Garments, Jewellery, Finance…).
  *
  * Guarantees uniform:

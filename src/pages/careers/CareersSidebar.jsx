@@ -29,7 +29,7 @@ function CareersSidebar() {
           Empowering Growth & Purpose
         </h3>
         <p className="mt-1.5 text-xs sm:text-sm text-gray-500 leading-relaxed">
-          We bring together talent across tech, real estate, finance, and operations to build Karnataka's leading cooperative platform.
+          We bring together talent across tech, properties, finance, and operations to build Karnataka's leading cooperative platform.
         </p>
 
         <div className="mt-6 space-y-4">

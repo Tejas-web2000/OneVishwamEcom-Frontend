@@ -8,7 +8,7 @@ import { EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, EMAILJS_PUBLIC_KEY, isEmailJSC
 const ROLE_SUGGESTIONS = [
   'Business Development',
   'Sales Executive',
-  'Real Estate Consultant',
+  'Property Consultant',
   'Software Engineer',
   'Operations Manager',
   'Finance & Accounts',
@@ -243,7 +243,7 @@ function ApplicationForm() {
             name="role"
             value={formData.role}
             onChange={handleChange}
-            placeholder="e.g. Sales Executive, Real Estate Advisor, Engineer"
+            placeholder="e.g. Sales Executive, Property Advisor, Engineer"
             error={errors.role}
           />
           <div className="mt-2 flex flex-wrap items-center gap-1.5">

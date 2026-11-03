@@ -1,4 +1,4 @@
-import { footerLocations } from '../../data/footerContent';
+import { footerLocations } from '../../constants/footerContent';
 
 function ContactSidebar() {
   return (

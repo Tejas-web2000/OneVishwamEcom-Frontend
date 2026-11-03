@@ -1,7 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { useVehicles } from './automobileHooks';
-import MarketplaceCategoryGallery from '../../../components/common/templates/MarketplaceCategoryGallery';
-import CategoryListingCard from '../../../components/common/templates/CategoryListingCard';
+import { UniversalCategoryGallery } from '../../../components/common/templates';
 import { mapVehicleToEntityItem } from '../../../components/common/templates/adapters';
 import VehicleQuickMatchModal from './VehicleQuickMatchModal';
 import ShowroomModal from './ShowroomModal';
@@ -12,25 +11,25 @@ const FILTER_GROUPS = [
     id: 'fuelTypes',
     title: 'Fuel Type',
     options: ['Petrol', 'Diesel', 'Electric', 'CNG'],
-    defaultOpen: true,
+    field: (v) => v.fuelType,
   },
   {
     id: 'transmissions',
     title: 'Transmission',
     options: ['Automatic', 'Manual'],
-    defaultOpen: true,
+    field: (v) => v.transmission,
   },
   {
     id: 'bodyTypes',
     title: 'Body Type & Category',
     options: ['SUV', 'Sedan', 'Hatchback', 'Cruiser / Bike', 'Commercial'],
-    defaultOpen: true,
+    field: (v) => v.bodyType || v.category,
   },
   {
     id: 'conditions',
     title: 'Condition & Ownership',
-    options: ['Brand New', '1st Owner', 'Pre-Owned'],
-    defaultOpen: false,
+    options: ['Brand New', 'Pre-Owned'],
+    field: (v) => (v.condition === 'new' || v.condition === 'brand-new' ? 'Brand New' : 'Pre-Owned'),
   },
 ];
 
@@ -43,217 +42,72 @@ const RANGE_FILTERS = [
     step: 50000,
     maxLabel: '₹ 60 L+',
     unitLabel: '₹',
-    defaultOpen: true,
   },
 ];
 
-function parseNumericPrice(str) {
-  if (!str) return 0;
-  const cleaned = String(str).replace(/[^\d.]/g, '');
-  const num = parseFloat(cleaned);
-  if (isNaN(num)) return 0;
-  if (/cr/i.test(str)) return num * 10000000;
-  if (/lakh|lac|l/i.test(str)) return num * 100000;
-  return num;
-}
-
+/**
+ * AutomobileGallery
+ * Powered by UniversalCategoryGallery - purely declarative configuration.
+ */
 export default function AutomobileGallery() {
-  const { vehicles = [], loading, error } = useVehicles();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [activeFilters, setActiveFilters] = useState({
-    budgetMin: '',
-    budgetMax: '',
-    fuelTypes: [],
-    transmissions: [],
-    bodyTypes: [],
-    conditions: [],
-  });
-
   const [quickMatchOpen, setQuickMatchOpen] = useState(false);
   const [showroomTarget, setShowroomTarget] = useState(null);
   const [showLoanModal, setShowLoanModal] = useState(false);
   const [loanModalPrefill, setLoanModalPrefill] = useState(null);
 
-  const handleFilterChange = (key, value) => {
-    setActiveFilters((prev) => ({ ...prev, [key]: value }));
-  };
-
-  const handleResetFilters = () => {
-    setActiveFilters({
-      budgetMin: '',
-      budgetMax: '',
-      fuelTypes: [],
-      transmissions: [],
-      bodyTypes: [],
-      conditions: [],
-    });
-    setSearchTerm('');
-  };
-
-  // Active chips calculation
-  const activeChips = useMemo(() => {
-    const chips = [];
-    if (activeFilters.budgetMin) {
-      chips.push({ key: 'budgetMin', label: `Min ₹${(+activeFilters.budgetMin / 100000).toFixed(1)}L` });
-    }
-    if (activeFilters.budgetMax) {
-      chips.push({ key: 'budgetMax', label: `Max ₹${(+activeFilters.budgetMax / 100000).toFixed(1)}L` });
-    }
-    (activeFilters.fuelTypes || []).forEach((f) => {
-      chips.push({ key: 'fuelTypes', label: f, value: f });
-    });
-    (activeFilters.transmissions || []).forEach((t) => {
-      chips.push({ key: 'transmissions', label: t, value: t });
-    });
-    (activeFilters.bodyTypes || []).forEach((b) => {
-      chips.push({ key: 'bodyTypes', label: b, value: b });
-    });
-    (activeFilters.conditions || []).forEach((c) => {
-      chips.push({ key: 'conditions', label: c, value: c });
-    });
-    return chips;
-  }, [activeFilters]);
-
-  const handleRemoveChip = (chip) => {
-    if (chip.key === 'budgetMin' || chip.key === 'budgetMax') {
-      handleFilterChange(chip.key, '');
-    } else {
-      const currentList = activeFilters[chip.key] || [];
-      handleFilterChange(chip.key, currentList.filter((x) => x !== chip.value));
-    }
-  };
-
-  // Filtering vehicles
-  const filteredVehicles = useMemo(() => {
-    const list = Array.isArray(vehicles) ? vehicles : [];
-    return list.filter((v) => {
-      // Search
-      if (searchTerm.trim()) {
-        const q = searchTerm.toLowerCase().trim();
-        const matchTitle = (v.title || '').toLowerCase().includes(q);
-        const matchBrand = (v.brand || '').toLowerCase().includes(q);
-        const matchModel = (v.model || '').toLowerCase().includes(q);
-        const matchLocation = (v.location || v.city || '').toLowerCase().includes(q);
-        const matchFuel = (v.fuelType || '').toLowerCase().includes(q);
-        if (!matchTitle && !matchBrand && !matchModel && !matchLocation && !matchFuel) {
-          return false;
-        }
-      }
-
-      // Budget
-      const numPrice = parseNumericPrice(v.price);
-      if (activeFilters.budgetMin && numPrice < Number(activeFilters.budgetMin)) {
-        return false;
-      }
-      if (activeFilters.budgetMax && numPrice > Number(activeFilters.budgetMax)) {
-        return false;
-      }
-
-      // Fuel Types
-      if (activeFilters.fuelTypes.length > 0) {
-        if (!v.fuelType || !activeFilters.fuelTypes.some((f) => v.fuelType.toLowerCase().includes(f.toLowerCase()))) {
-          return false;
-        }
-      }
-
-      // Transmissions
-      if (activeFilters.transmissions.length > 0) {
-        if (!v.transmission || !activeFilters.transmissions.some((t) => v.transmission.toLowerCase().includes(t.toLowerCase()))) {
-          return false;
-        }
-      }
-
-      // Body Types
-      if (activeFilters.bodyTypes.length > 0) {
-        if (!v.bodyType || !activeFilters.bodyTypes.some((b) => v.bodyType.toLowerCase().includes(b.toLowerCase()))) {
-          return false;
-        }
-      }
-
-      // Conditions
-      if (activeFilters.conditions.length > 0) {
-        const matchesCondition = activeFilters.conditions.some((c) => {
-          if (c === 'Brand New' && (v.condition === 'new' || v.condition === 'brand-new')) return true;
-          if (c === 'Pre-Owned' && (v.condition === 'old' || v.condition === 'pre-owned')) return true;
-          if (c === '1st Owner' && (v.statusBadges || []).some((sb) => sb.label === '1st Owner')) return true;
-          return false;
-        });
-        if (!matchesCondition) return false;
-      }
-
-      return true;
-    });
-  }, [vehicles, searchTerm, activeFilters]);
-
   return (
-    <>
-      <MarketplaceCategoryGallery
-        categoryTitle="Explore Verified Automobiles & Vehicles"
-        categorySubtitle="Discover brand-new cars, verified pre-owned vehicles, bikes, and commercial fleets with full inspection reports."
-        breadcrumbCategory="Automobiles & Vehicles"
-        items={filteredVehicles}
-        filterGroups={FILTER_GROUPS}
-        rangeFilters={RANGE_FILTERS}
-        activeFilters={activeFilters}
-        onFilterChange={handleFilterChange}
-        activeChips={activeChips}
-        onRemoveChip={handleRemoveChip}
-        onResetFilters={handleResetFilters}
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        searchPlaceholder="Search vehicles by model, fuel, or transmission (e.g. Swift, Brezza, Ertiga CNG, Automatic)..."
-        onQuickMatch={() => setQuickMatchOpen(true)}
-        quickMatchLabel="Vehicle Match"
-        customCardRenderer={(vehicle) => {
-          const mapped = mapVehicleToEntityItem(vehicle);
-          const vId = vehicle.id || vehicle._id;
-          return (
-            <CategoryListingCard
-              key={vId}
-              item={mapped || vehicle}
-              link={`/vehicle/${vId}`}
-              overline={mapped?.overline || (vehicle.brand ? `${vehicle.brand} · ${vehicle.bodyType || vehicle.category}` : vehicle.category)}
-              title={mapped?.title || vehicle.title}
-              price={mapped?.price || vehicle.price}
-              priceSuffix={mapped?.priceSuffix || vehicle.priceSuffix}
-              location={mapped?.location || vehicle.location}
-              pincode={mapped?.pincode || vehicle.pincode}
-              statusBadges={mapped?.badges || vehicle.statusBadges}
-              cardPills={mapped?.cardPills || vehicle.cardPills}
-              keyAttributes={mapped?.keyAttributes || vehicle.keyAttributes}
-              highlightBanner={vehicle.highlightBanner || (vehicle.loanApproved ? '100% Pre-Approved Loan Available' : null)}
+    <UniversalCategoryGallery
+      categoryTitle="Explore Verified Automobiles & Vehicles"
+      categorySubtitle="Discover brand-new cars, verified pre-owned vehicles, bikes, and commercial fleets with full inspection reports."
+      breadcrumb="Automobiles & Vehicles"
+      useItems={useVehicles}
+      hidePrice={true}
+      searchPlaceholder="Search vehicles by model, fuel, or transmission (e.g. Swift, Brezza, Ertiga CNG, Automatic)..."
+      onQuickMatch={() => setQuickMatchOpen(true)}
+      quickMatchLabel="Vehicle Match"
+      mapping={{
+        id: (v) => v._id || v.id,
+        title: (v) => (v.brand && v.model ? `${v.brand} ${v.model}` : v.title),
+        image: (v) => v.images?.[0] || v.image,
+        price: (v) => v.price,
+        priceSuffix: (v) => v.priceSuffix || (v.condition === 'new' ? 'Ex-Showroom' : 'Pre-Owned'),
+        location: (v) => v.location || v.showroom?.city || 'Bangalore',
+        pincode: (v) => v.pincode || v.showroom?.pincode,
+        overline: (v) => (v.brand ? `${v.brand} · ${v.bodyType || v.category}` : v.category),
+        badges: (v) => [
+          v.loanApproved && { label: 'Loan Approved', className: 'bg-blue-600 text-white' },
+          v.condition && {
+            label: v.condition === 'new' ? 'Brand New' : 'Certified Pre-Owned',
+            className: v.condition === 'new' ? 'bg-emerald-600 text-white' : 'bg-slate-700 text-white',
+          },
+          v.featured && { label: 'Featured', className: 'bg-amber-500 text-white' },
+        ].filter(Boolean),
+        pills: (v) => [v.fuelType, v.transmission, v.year ? `${v.year}` : null].filter(Boolean),
+        highlightBanner: (v) => (v.loanApproved ? '100% Pre-Approved Loan Available' : null),
+        detailUrl: (v) => `/vehicle/${v._id || v.id}`,
+      }}
+      filterGroups={FILTER_GROUPS}
+      rangeFilters={RANGE_FILTERS}
+      customModals={
+        <>
+          {showroomTarget && (
+            <ShowroomModal vehicle={showroomTarget} onClose={() => setShowroomTarget(null)} />
+          )}
+          {quickMatchOpen && (
+            <VehicleQuickMatchModal isOpen={quickMatchOpen} onClose={() => setQuickMatchOpen(false)} />
+          )}
+          {showLoanModal && (
+            <QuickLoanModal
+              open={showLoanModal}
+              onClose={() => {
+                setShowLoanModal(false);
+                setLoanModalPrefill(null);
+              }}
+              prefill={loanModalPrefill}
             />
-          );
-        }}
-      />
-
-      {/* Showroom Target Modal */}
-      {showroomTarget && (
-        <ShowroomModal
-          vehicle={showroomTarget}
-          onClose={() => setShowroomTarget(null)}
-        />
-      )}
-
-      {/* Quick Match Modal */}
-      {quickMatchOpen && (
-        <VehicleQuickMatchModal
-          isOpen={quickMatchOpen}
-          onClose={() => setQuickMatchOpen(false)}
-        />
-      )}
-
-      {/* Quick Loan Modal */}
-      {showLoanModal && (
-        <QuickLoanModal
-          open={showLoanModal}
-          onClose={() => {
-            setShowLoanModal(false);
-            setLoanModalPrefill(null);
-          }}
-          prefill={loanModalPrefill}
-        />
-      )}
-    </>
+          )}
+        </>
+      }
+    />
   );
 }

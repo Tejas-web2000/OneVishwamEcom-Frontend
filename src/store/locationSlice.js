@@ -1,6 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { useSelector, useDispatch } from 'react-redux';
-import { cities, defaultCity, defaultArea } from '../data/locations';
+import { cities, defaultCity, defaultArea } from '../constants/locations';
 
 function load(key, fallback) {
   try {

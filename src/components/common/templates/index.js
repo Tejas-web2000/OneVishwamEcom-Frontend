@@ -1,9 +1,6 @@
-export { default as ListingCard } from './ListingCard';
-export { default as CategoryListingCard } from './CategoryListingCard';
-export { default as CategoryGalleryTemplate } from './CategoryGalleryTemplate';
+export { default as UniversalCategoryGallery } from './UniversalCategoryGallery';
+export { default as UniversalDetailPage } from './UniversalDetailPage';
+export { default as MasterDetailPage } from './MasterDetailPage';
 export { default as MarketplaceCategoryGallery, DualRangeSlider } from './MarketplaceCategoryGallery';
-export { default as ProductDetailTemplate } from './ProductDetailTemplate';
-export {
-  mapPropertyToEntityItem,
-  mapVehicleToEntityItem,
-} from './adapters';
+export { default as CategoryListingCard } from './CategoryListingCard';
+export * from './adapters';

@@ -1,9 +1,11 @@
+import { useState, useMemo } from 'react';
 import { CollapsibleSection, CheckboxGroup } from '../../../components/ui';
 import {
   BEDROOM_OPTIONS, FURNISHING_OPTIONS,
   POSTED_BY_OPTIONS, POSSESSION_OPTIONS, AMENITIES_LIST, FACING_OPTIONS,
-  AGE_OPTIONS, AVAILABILITY_OPTIONS,
+  AGE_OPTIONS, AVAILABILITY_OPTIONS, PROPERTY_TYPE_OPTIONS,
 } from './propertyConstants';
+import { getDynamicSizePresets } from './propertyHelpers';
 
 function formatSizeLabel(val) {
   const num = Number(val);
@@ -11,8 +13,9 @@ function formatSizeLabel(val) {
   return `${num.toLocaleString('en-IN')} sq.ft`;
 }
 
+
 function DualRangeSlider({
-  min = 600,
+  min = 0,
   max = 10000,
   step = 50,
   minVal,
@@ -83,26 +86,96 @@ function DualRangeSlider({
  * Reusable filter sidebar — used by both desktop aside and mobile drawer.
  */
 export default function PropertyFilterSidebar({
-  filters, updateFilter, openSections, toggleSection,
-  activeChips, resetFilters, cityAreas, noCityMessage,
+  filters,
+  updateFilter,
+  openSections,
+  toggleSection,
+  activeChips = [],
+  resetFilters,
+  cityAreas = [],
+  noCityMessage,
   sizeBounds = { min: 600, max: 10000 },
+  sizePresets = [],
 }) {
+  const [localitySearch, setLocalitySearch] = useState('');
   const sizeStep = Math.max(10, (sizeBounds.max - sizeBounds.min) > 5000 ? 100 : 50);
+
+  const effectiveSizePresets = useMemo(() => {
+    if (Array.isArray(sizePresets) && sizePresets.length > 0) return sizePresets;
+    return getDynamicSizePresets([], sizeBounds);
+  }, [sizePresets, sizeBounds]);
+
+  // Filtered localities based on search input
+  const filteredLocalities = useMemo(() => {
+    if (!localitySearch.trim()) return cityAreas;
+    const q = localitySearch.toLowerCase().trim();
+    return cityAreas.filter((a) => a.toLowerCase().includes(q));
+  }, [cityAreas, localitySearch]);
+
 
   return (
     <div className="space-y-1">
       {/* Header */}
-      <div className="flex items-center justify-between mb-3">
-        <span className="text-sm font-bold text-brand-charcoal">Filters</span>
+      <div className="flex items-center justify-between pb-3 border-b border-gray-100 mb-2">
+        <div className="flex items-center gap-2">
+          <i className="fa-solid fa-sliders text-brand-blue text-xs" />
+          <span className="text-sm font-bold text-brand-charcoal">Filter Properties</span>
+          {activeChips.length > 0 && (
+            <span className="w-5 h-5 rounded-full bg-brand-blue/10 text-brand-blue text-[10px] font-bold flex items-center justify-center">
+              {activeChips.length}
+            </span>
+          )}
+        </div>
         {activeChips.length > 0 && (
-          <button onClick={resetFilters} className="text-xs text-brand-blue font-semibold hover:underline">
+          <button
+            type="button"
+            onClick={resetFilters}
+            className="text-xs text-rose-500 hover:text-rose-700 font-bold hover:underline cursor-pointer"
+          >
             Reset All
           </button>
         )}
       </div>
 
-      {/* Property Size */}
-      <CollapsibleSection id="size" label="Property Size" open={openSections.size} onToggle={toggleSection}>
+
+      {/* ── 2. Property Size (sq.ft) Section ── */}
+      <CollapsibleSection
+        id="size"
+        label="Property Size (sq.ft)"
+        open={openSections.size}
+        onToggle={toggleSection}
+      >
+        {/* Quick Size Preset Pills */}
+        <div className="flex flex-wrap gap-1 mb-3">
+          {effectiveSizePresets.map((s) => {
+            const isMatch =
+              String(filters.sizeMin) === String(s.min) &&
+              String(filters.sizeMax) === String(s.max);
+            return (
+              <button
+                key={s.label}
+                type="button"
+                onClick={() => {
+                  if (isMatch) {
+                    updateFilter('sizeMin', '');
+                    updateFilter('sizeMax', '');
+                  } else {
+                    updateFilter('sizeMin', String(s.min));
+                    updateFilter('sizeMax', String(s.max));
+                  }
+                }}
+                className={`text-[11px] px-2 py-1 rounded-lg border transition-all cursor-pointer ${
+                  isMatch
+                    ? 'border-brand-blue bg-brand-blue text-white font-bold shadow-2xs'
+                    : 'border-gray-200 text-gray-600 bg-white hover:border-brand-blue/40 hover:bg-gray-50'
+                }`}
+              >
+                {s.label}
+              </button>
+            );
+          })}
+        </div>
+
         {/* Dual Range Size Slider */}
         <DualRangeSlider
           min={sizeBounds.min}
@@ -111,7 +184,7 @@ export default function PropertyFilterSidebar({
           minVal={filters.sizeMin}
           maxVal={filters.sizeMax}
           formatLabel={formatSizeLabel}
-          maxLabel={formatSizeLabel(sizeBounds.max)}
+          maxLabel={`${formatSizeLabel(sizeBounds.max)}+`}
           onChange={(minVal, maxVal) => {
             updateFilter('sizeMin', minVal);
             updateFilter('sizeMax', maxVal);
@@ -120,30 +193,32 @@ export default function PropertyFilterSidebar({
 
         <div className="flex gap-2 mt-3">
           <div className="w-full">
+            <label className="text-[10px] font-semibold text-gray-400 block mb-0.5">Min Area</label>
             <input
               type="number"
               placeholder={`Min (${formatSizeLabel(sizeBounds.min)})`}
-              value={filters.sizeMin}
+              value={filters.sizeMin || ''}
               onChange={(e) => updateFilter('sizeMin', e.target.value)}
-              className="w-full rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs outline-none focus:border-brand-blue"
+              className="w-full rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs outline-none focus:border-brand-blue bg-white"
             />
             {filters.sizeMin > 0 && (
-              <span className="text-[10px] text-brand-blue font-semibold block mt-0.5 pl-1">
+              <span className="text-[10px] text-brand-blue font-semibold block mt-0.5 pl-1 truncate">
                 {formatSizeLabel(filters.sizeMin)}
               </span>
             )}
           </div>
 
           <div className="w-full">
+            <label className="text-[10px] font-semibold text-gray-400 block mb-0.5">Max Area</label>
             <input
               type="number"
               placeholder={`Max (${formatSizeLabel(sizeBounds.max)})`}
-              value={filters.sizeMax}
+              value={filters.sizeMax || ''}
               onChange={(e) => updateFilter('sizeMax', e.target.value)}
-              className="w-full rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs outline-none focus:border-brand-blue"
+              className="w-full rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs outline-none focus:border-brand-blue bg-white"
             />
             {filters.sizeMax > 0 && (
-              <span className="text-[10px] text-brand-blue font-semibold block mt-0.5 pl-1">
+              <span className="text-[10px] text-brand-blue font-semibold block mt-0.5 pl-1 truncate">
                 {formatSizeLabel(filters.sizeMax)}
               </span>
             )}
@@ -151,108 +226,234 @@ export default function PropertyFilterSidebar({
         </div>
       </CollapsibleSection>
 
-      {/* Building Type */}
-      <CollapsibleSection id="buildingType" label="Building Type" open={openSections.buildingType} onToggle={toggleSection}>
-        <CheckboxGroup options={['Residential', 'Commercial']} selected={filters.buildingType}
-          onChange={(v) => updateFilter('buildingType', v)} />
-      </CollapsibleSection>
-
-      {/* Property Type */}
-      <CollapsibleSection id="propertyType" label="Property Type" open={openSections.propertyType} onToggle={toggleSection}>
-        <CheckboxGroup options={['Flats', 'Houses', 'Villas', 'Plots', 'Commercial']} selected={filters.propertyType}
-          onChange={(v) => updateFilter('propertyType', v)} />
-      </CollapsibleSection>
-
-      {/* Bedrooms */}
-      <CollapsibleSection id="bedrooms" label="Bedrooms" open={openSections.bedrooms} onToggle={toggleSection}>
+      {/* ── 3. Bedrooms (BHK) Section ── */}
+      <CollapsibleSection
+        id="bedrooms"
+        label="Bedrooms (BHK)"
+        open={openSections.bedrooms}
+        onToggle={toggleSection}
+      >
         <div className="flex flex-wrap gap-1.5">
           {BEDROOM_OPTIONS.map((b) => {
             const active = filters.bedrooms.includes(b);
             return (
-              <button key={b}
+              <button
+                key={b}
+                type="button"
                 onClick={() => {
-                  const next = active ? filters.bedrooms.filter((x) => x !== b) : [...filters.bedrooms, b];
+                  const next = active
+                    ? filters.bedrooms.filter((x) => x !== b)
+                    : [...filters.bedrooms, b];
                   updateFilter('bedrooms', next);
                 }}
-                className={`text-xs px-2.5 py-1.5 rounded-lg border transition-colors ${
-                  active ? 'border-brand-blue bg-brand-blue/5 text-brand-blue font-semibold' : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                className={`text-xs px-2.5 py-1.5 rounded-lg border transition-all cursor-pointer ${
+                  active
+                    ? 'border-brand-blue bg-brand-blue text-white font-bold shadow-2xs'
+                    : 'border-gray-200 text-gray-600 bg-white hover:border-gray-300'
                 }`}
-              >{b}</button>
+              >
+                {b}
+              </button>
             );
           })}
         </div>
       </CollapsibleSection>
 
-      {/* Localities */}
-      <CollapsibleSection id="localities" label="Localities / Zones" open={openSections.localities} onToggle={toggleSection}>
+      {/* ── 4. Localities / Zones Section with Inline Search ── */}
+      <CollapsibleSection
+        id="localities"
+        label="Localities / Zones"
+        open={openSections.localities}
+        onToggle={toggleSection}
+      >
         {cityAreas.length === 0 ? (
-          <p className="text-xs text-gray-400 italic">{noCityMessage}</p>
+          <p className="text-xs text-gray-400 italic">{noCityMessage || 'No areas available for current selection.'}</p>
         ) : (
-          <CheckboxGroup options={cityAreas} selected={filters.localities}
-            onChange={(v) => updateFilter('localities', v)} />
+          <div className="space-y-2">
+            {/* Search within localities */}
+            <div className="relative">
+              <i className="fa-solid fa-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-[11px]" />
+              <input
+                type="text"
+                value={localitySearch}
+                onChange={(e) => setLocalitySearch(e.target.value)}
+                placeholder="Search area (e.g. Whitefield)..."
+                className="w-full pl-7 pr-7 py-1.5 text-xs rounded-lg border border-gray-200 bg-gray-50 focus:bg-white focus:border-brand-blue outline-none transition-all placeholder:text-gray-400"
+              />
+              {localitySearch && (
+                <button
+                  type="button"
+                  onClick={() => setLocalitySearch('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-xs"
+                >
+                  <i className="fa-solid fa-xmark text-[10px]" />
+                </button>
+              )}
+            </div>
+
+            {/* Checkbox list with scroll container */}
+            <div className="max-h-52 overflow-y-auto pr-1 space-y-1 scrollbar-thin">
+              {filteredLocalities.length === 0 ? (
+                <p className="text-[11px] text-gray-400 italic py-2 text-center">No area matches &quot;{localitySearch}&quot;</p>
+              ) : (
+                <CheckboxGroup
+                  options={filteredLocalities}
+                  selected={filters.localities}
+                  onChange={(v) => updateFilter('localities', v)}
+                />
+              )}
+            </div>
+            {filters.localities.length > 0 && (
+              <p className="text-[10px] font-semibold text-brand-blue pt-1">
+                {filters.localities.length} area(s) selected
+              </p>
+            )}
+          </div>
         )}
       </CollapsibleSection>
 
-      {/* Furnishing */}
-      <CollapsibleSection id="furnishing" label="Furnishing" open={openSections.furnishing} onToggle={toggleSection}>
-        <CheckboxGroup options={FURNISHING_OPTIONS} selected={filters.furnishing}
-          onChange={(v) => updateFilter('furnishing', v)} />
+      {/* ── 5. Property Type ── */}
+      <CollapsibleSection
+        id="propertyType"
+        label="Property Type"
+        open={openSections.propertyType}
+        onToggle={toggleSection}
+      >
+        <CheckboxGroup
+          options={PROPERTY_TYPE_OPTIONS}
+          selected={filters.propertyType}
+          onChange={(v) => updateFilter('propertyType', v)}
+        />
       </CollapsibleSection>
 
-      {/* Gated Community */}
-      <CollapsibleSection id="gatedCommunity" label="Gated Community" open={openSections.gatedCommunity} onToggle={toggleSection}>
-        <label className="flex items-center gap-2 cursor-pointer text-xs text-gray-700">
-          <input type="checkbox" checked={filters.gatedCommunity}
-            onChange={(e) => updateFilter('gatedCommunity', e.target.checked)}
-            className="rounded border-gray-300 text-brand-blue focus:ring-brand-blue" />
-          <span>Gated Community Only</span>
-        </label>
+      {/* ── 7. Furnishing ── */}
+      <CollapsibleSection
+        id="furnishing"
+        label="Furnishing"
+        open={openSections.furnishing}
+        onToggle={toggleSection}
+      >
+        <CheckboxGroup
+          options={FURNISHING_OPTIONS}
+          selected={filters.furnishing}
+          onChange={(v) => updateFilter('furnishing', v)}
+        />
       </CollapsibleSection>
 
-      {/* Pre-Approved Loan Only */}
-      <CollapsibleSection id="loanAvailability" label="Loan Availability" open={openSections.loanAvailability} onToggle={toggleSection}>
-        <label className="flex items-center gap-2 cursor-pointer text-xs text-gray-700">
-          <input type="checkbox" checked={filters.loanApprovedOnly}
-            onChange={(e) => updateFilter('loanApprovedOnly', e.target.checked)}
-            className="rounded border-gray-300 text-brand-blue focus:ring-brand-blue" />
-          <span>Pre-Approved Loan Only</span>
-        </label>
+      {/* ── 8. Possession Status ── */}
+      <CollapsibleSection
+        id="possessionStatus"
+        label="Possession Status"
+        open={openSections.possessionStatus}
+        onToggle={toggleSection}
+      >
+        <CheckboxGroup
+          options={POSSESSION_OPTIONS}
+          selected={filters.possessionStatus}
+          onChange={(v) => updateFilter('possessionStatus', v)}
+        />
       </CollapsibleSection>
 
-      {/* Posted By */}
-      <CollapsibleSection id="postedBy" label="Posted By" open={openSections.postedBy} onToggle={toggleSection}>
-        <CheckboxGroup options={POSTED_BY_OPTIONS} selected={filters.postedBy}
-          onChange={(v) => updateFilter('postedBy', v)} />
+      {/* ── 9. Gated Community & Loan Toggles ── */}
+      <CollapsibleSection
+        id="gatedCommunity"
+        label="Community & Loan"
+        open={openSections.gatedCommunity}
+        onToggle={toggleSection}
+      >
+        <div className="space-y-2.5">
+          <label className="flex items-center gap-2 cursor-pointer text-xs text-gray-700">
+            <input
+              type="checkbox"
+              checked={Boolean(filters.gatedCommunity)}
+              onChange={(e) => updateFilter('gatedCommunity', e.target.checked)}
+              className="rounded border-gray-300 text-brand-blue focus:ring-brand-blue"
+            />
+            <span className="font-medium">Gated Community Only</span>
+          </label>
+
+          <label className="flex items-center gap-2 cursor-pointer text-xs text-gray-700">
+            <input
+              type="checkbox"
+              checked={Boolean(filters.loanApprovedOnly)}
+              onChange={(e) => updateFilter('loanApprovedOnly', e.target.checked)}
+              className="rounded border-gray-300 text-brand-blue focus:ring-brand-blue"
+            />
+            <span className="font-medium">Pre-Approved Loan Available</span>
+          </label>
+        </div>
       </CollapsibleSection>
 
-      {/* Possession Status */}
-      <CollapsibleSection id="possessionStatus" label="Possession Status" open={openSections.possessionStatus} onToggle={toggleSection}>
-        <CheckboxGroup options={POSSESSION_OPTIONS} selected={filters.possessionStatus}
-          onChange={(v) => updateFilter('possessionStatus', v)} />
+      {/* ── 10. Posted By ── */}
+      <CollapsibleSection
+        id="postedBy"
+        label="Posted By"
+        open={openSections.postedBy}
+        onToggle={toggleSection}
+      >
+        <CheckboxGroup
+          options={POSTED_BY_OPTIONS}
+          selected={filters.postedBy}
+          onChange={(v) => updateFilter('postedBy', v)}
+        />
       </CollapsibleSection>
 
-      {/* Amenities */}
-      <CollapsibleSection id="amenities" label="Amenities" open={openSections.amenities} onToggle={toggleSection}>
-        <CheckboxGroup options={AMENITIES_LIST} selected={filters.amenities}
-          onChange={(v) => updateFilter('amenities', v)} />
+      {/* ── 11. Facing ── */}
+      <CollapsibleSection
+        id="facing"
+        label="Facing"
+        open={openSections.facing}
+        onToggle={toggleSection}
+      >
+        <CheckboxGroup
+          options={FACING_OPTIONS}
+          selected={filters.facing}
+          onChange={(v) => updateFilter('facing', v)}
+        />
       </CollapsibleSection>
 
-      {/* Facing */}
-      <CollapsibleSection id="facing" label="Facing" open={openSections.facing} onToggle={toggleSection}>
-        <CheckboxGroup options={FACING_OPTIONS} selected={filters.facing}
-          onChange={(v) => updateFilter('facing', v)} />
+      {/* ── 12. Amenities ── */}
+      <CollapsibleSection
+        id="amenities"
+        label="Amenities"
+        open={openSections.amenities}
+        onToggle={toggleSection}
+      >
+        <div className="max-h-48 overflow-y-auto pr-1 scrollbar-thin">
+          <CheckboxGroup
+            options={AMENITIES_LIST}
+            selected={filters.amenities}
+            onChange={(v) => updateFilter('amenities', v)}
+          />
+        </div>
       </CollapsibleSection>
 
-      {/* Property Age */}
-      <CollapsibleSection id="propertyAge" label="Property Age" open={openSections.propertyAge} onToggle={toggleSection}>
-        <CheckboxGroup options={AGE_OPTIONS} selected={filters.propertyAge}
-          onChange={(v) => updateFilter('propertyAge', v)} />
+      {/* ── 13. Property Age ── */}
+      <CollapsibleSection
+        id="propertyAge"
+        label="Property Age"
+        open={openSections.propertyAge}
+        onToggle={toggleSection}
+      >
+        <CheckboxGroup
+          options={AGE_OPTIONS}
+          selected={filters.propertyAge}
+          onChange={(v) => updateFilter('propertyAge', v)}
+        />
       </CollapsibleSection>
 
-      {/* Availability */}
-      <CollapsibleSection id="availability" label="Availability" open={openSections.availability} onToggle={toggleSection}>
-        <CheckboxGroup options={AVAILABILITY_OPTIONS} selected={filters.availability}
-          onChange={(v) => updateFilter('availability', v)} />
+      {/* ── 14. Availability ── */}
+      <CollapsibleSection
+        id="availability"
+        label="Availability"
+        open={openSections.availability}
+        onToggle={toggleSection}
+      >
+        <CheckboxGroup
+          options={AVAILABILITY_OPTIONS}
+          selected={filters.availability}
+          onChange={(v) => updateFilter('availability', v)}
+        />
       </CollapsibleSection>
     </div>
   );

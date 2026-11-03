@@ -89,7 +89,7 @@ export default function PromoModal() {
         <div className="relative h-20 sm:h-24 w-full shrink-0 overflow-hidden bg-slate-100">
           <img
             src={PROMO_IMAGE_URL}
-            alt="Onevishwam Luxury Real Estate"
+            alt="Onevishwam Luxury Properties"
             className="w-full h-full object-cover object-center transform scale-105"
             loading="eager"
           />

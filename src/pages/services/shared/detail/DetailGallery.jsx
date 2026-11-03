@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
+import { ONEVISHWAM_VERIFIED_IMAGE, isPlaceholderImage } from '../../../../constants/fallbackImage';
 
-const FALLBACK_IMG = 'data:image/svg+xml,' + encodeURIComponent(
-  `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" fill="none"><rect width="400" height="300" fill="#f3f4f6"/><path fill="#9ca3af" d="M160 130h80v-10l-40-40-40 40v10zm-20 50h120v-60l-40-40-80 80v20z"/></svg>`
-);
+const FALLBACK_IMG = ONEVISHWAM_VERIFIED_IMAGE;
 
 /**
  * Universal Detail Page Photo Gallery
@@ -19,18 +18,23 @@ export default function DetailGallery({
 }) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  const imageList = Array.isArray(images) && images.length > 0
+  const rawImageList = Array.isArray(images) && images.length > 0
     ? images
     : typeof images === 'string' && images
       ? [images]
       : [];
 
+  const validImages = rawImageList.filter((img) => img && !isPlaceholderImage(img));
   const rawVideo = video && typeof video === 'string' && video.trim() !== '' ? video.trim() : null;
 
   const mediaList = [
-    ...imageList.map((img) => ({ type: 'image', url: img })),
+    ...validImages.map((img) => ({ type: 'image', url: img })),
     ...(rawVideo ? [{ type: 'video', url: rawVideo }] : []),
   ];
+
+  if (mediaList.length === 0) {
+    mediaList.push({ type: 'image', url: FALLBACK_IMG });
+  }
 
   const currentMedia = mediaList[currentIndex] || mediaList[0] || { type: 'image', url: FALLBACK_IMG };
   const isVideo = currentMedia.type === 'video';
@@ -59,6 +63,10 @@ export default function DetailGallery({
           <img
             src={currentMedia.url}
             alt={title}
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = FALLBACK_IMG;
+            }}
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
           />
         )}
@@ -90,7 +98,15 @@ export default function DetailGallery({
                   <span className="text-[10px] font-semibold">Video</span>
                 </div>
               ) : (
-                <img src={item.url} alt={`${title} view ${idx + 1}`} className="h-full w-full object-cover" />
+                <img
+                  src={item.url}
+                  alt={`${title} view ${idx + 1}`}
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = FALLBACK_IMG;
+                  }}
+                  className="h-full w-full object-cover"
+                />
               )}
             </button>
           ))}

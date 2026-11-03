@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../../../../store/authSlice';
+import { Breadcrumbs } from '../../../../components/ui';
 import AuthRequiredView from '../../../../components/auth/AuthRequiredView';
 import { LoadingSpinner, ErrorState } from '../LoadingError';
 import DetailGallery from './DetailGallery';
@@ -227,15 +228,16 @@ export default function MasterDetailPage({
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24 sm:pb-32 relative">
-      {/* Back Navigation Bar */}
+      {/* Back Navigation & Breadcrumbs Bar */}
       <div className="bg-white border-b border-gray-100">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between">
-          <Link
-            to={backUrl}
-            className="inline-flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-brand-blue transition-colors"
-          >
-            <i className="fa-solid fa-arrow-left" /> {backLabel}
-          </Link>
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-3.5">
+          <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
+            <Breadcrumbs
+              categoryName={config.categoryName || backLabel.replace(/^Back to\s+/i, '') || 'Listings'}
+              categoryLink={backUrl || undefined}
+              itemTitle={normalized.title || 'Listing Details'}
+            />
+          </div>
         </div>
       </div>
 

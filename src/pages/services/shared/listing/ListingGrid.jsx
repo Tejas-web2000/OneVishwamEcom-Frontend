@@ -13,6 +13,7 @@ export default function ListingGrid({
   emptyIcon = 'fa-solid fa-layer-group',
   emptyTitle = 'No listings found',
   emptySubtitle = 'Try adjusting your filters or search terms.',
+  emptyAnimationType = 'emptyCatalog',
   onResetFilters,
   gridClass = 'grid gap-5 sm:grid-cols-2 lg:grid-cols-3',
 }) {
@@ -23,6 +24,7 @@ export default function ListingGrid({
         title={emptyTitle}
         subtitle={emptySubtitle}
         onReset={onResetFilters}
+        animationType={emptyAnimationType}
       />
     );
   }
