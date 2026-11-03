@@ -28,8 +28,7 @@ function ServiceDetails({ service }) {
   if (service.id === 'automobile') return <Suspense fallback={galleryFallback}><AutomobileGallery /></Suspense>;
   if (service.id === 'consumer-electronics') return <Suspense fallback={galleryFallback}><ElectronicsGallery /></Suspense>;
   if (service.id === 'bedding-comfort') return <Suspense fallback={galleryFallback}><BeddingGallery /></Suspense>;
-  if (service.id === 'jewellery-gold') return <Suspense fallback={galleryFallback}><JewelleryGallery /></Suspense>;
-  if (service.id === 'automobile') return <Suspense fallback={galleryFallback}><AutomobileGallery /></Suspense>;
+  if (service.id === 'jewellery-gold' || service.id === 'jewellery') return <Suspense fallback={galleryFallback}><JewelleryGallery /></Suspense>;
   if (service.id === 'consumer-marketplace') return <Suspense fallback={galleryFallback}><GroceryGallery /></Suspense>;
   if (service.id === 'garments-fashion-lifestyle') return <Suspense fallback={galleryFallback}><GarmentGallery /></Suspense>;
   if (service.id === 'finance-lending') return <Suspense fallback={galleryFallback}><FinanceLoanGallery /></Suspense>;
@@ -79,14 +78,18 @@ function ServiceDetails({ service }) {
                   </ul>
                 </div>
               )}
-              <div className="rounded-xl bg-brand-navy text-white p-6">
-                <h3 className="text-lg font-bold">Ready to get started?</h3>
-                <p className="mt-2 text-sm text-gray-400">Contact our team to discuss your requirements.</p>
-                <a href="/contact-us/"
-                  className="mt-4 inline-flex w-full items-center justify-center bg-brand-blue px-6 py-3 rounded-xl font-semibold text-sm hover:bg-blue-700 transition-colors"
-                >
-                  Contact Us
-                </a>
+              <div className="relative rounded-2xl bg-gradient-to-b from-[#d9ebfa] via-[#e8f2fb] to-[#cfe4f6] text-slate-900 p-6 border border-sky-200/90 shadow-sm overflow-hidden">
+                <div className="absolute -top-10 -right-10 w-40 h-40 bg-sky-300/40 rounded-full blur-2xl pointer-events-none" />
+                <div className="relative z-10">
+                  <h3 className="text-lg font-black text-slate-950">Ready to get started?</h3>
+                  <p className="mt-2 text-xs sm:text-sm text-slate-600 font-semibold">Contact our team to discuss your requirements.</p>
+                  <a
+                    href="/contact-us/"
+                    className="mt-4 inline-flex w-full items-center justify-center bg-brand-blue text-white px-6 py-3 rounded-xl font-bold text-sm hover:bg-brand-navy transition-all shadow-md hover:scale-[1.02] active:scale-95"
+                  >
+                    Contact Us
+                  </a>
+                </div>
               </div>
             </div>
           </div>

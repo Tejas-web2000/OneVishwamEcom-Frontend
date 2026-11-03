@@ -1,123 +1,43 @@
-import React, { useState, useMemo } from 'react';
+import React from 'react';
+import { UniversalCategoryGallery } from '../../../components/common/templates';
 import { useGroceries } from './groceryHooks';
-import { groceryListingConfig } from './groceryConfig';
-import {
-  MasterListingPage,
-  TopFilterBar,
-  FilterToggle,
-  useFilterState,
-  getNumericPrice,
-} from '../shared';
-import GroceryFilterSidebar from './components/GroceryFilterSidebar';
-import { useLocation } from '../../../store/locationSlice';
-import { cities } from '../../../constants/locations';
+import { GROCERY_CATEGORIES, DELIVERY_TYPE_OPTIONS } from './groceryConfig';
 
-const INITIAL_FILTERS = {
-  priceMin: '',
-  priceMax: '',
-  vendors: [],
-  delivery: [],
-  availability: '',
-  locality: '',
-  organicOnly: false,
-};
+const FILTER_GROUPS = [
+  { id: 'category', title: 'Category', options: GROCERY_CATEGORIES.filter((c) => c.id !== 'All').map((c) => c.id) },
+  { id: 'delivery', title: 'Delivery Type', options: DELIVERY_TYPE_OPTIONS },
+];
 
-const INITIAL_SECTIONS = {
-  price: true,
-  vendors: true,
-  delivery: true,
-  availability: false,
-  locality: false,
-};
+const RANGE_FILTERS = [
+  { id: 'budget', title: 'Price Range (₹)', min: 0, max: 2000, step: 25, unitLabel: '₹' },
+];
 
-/**
- * Grocery & Consumer Marketplace Gallery Page
- * Powered by MasterListingPage & TopFilterBar.
- */
 export default function GroceryGallery() {
-  const { selectedCity, selectCity } = useLocation();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-
-  const { filters, openSections, updateFilter, toggleSection, resetFilters } = useFilterState(
-    INITIAL_FILTERS,
-    INITIAL_SECTIONS
-  );
-
-  const { groceries, loading, error } = useGroceries();
-
-  const cityAreas = selectedCity ? cities[selectedCity]?.areas || [] : [];
-
-  const filteredGroceries = useMemo(() => {
-    return (groceries || []).filter((item) => {
-      if (filters.organicOnly && !item.organic) return false;
-      if (filters.availability === 'In Stock' && (item.inStock === false || item.stock === 0)) return false;
-
-      if (filters.locality && item.location?.area !== filters.locality && item.area !== filters.locality) {
-        return false;
-      }
-
-      if (searchTerm.trim()) {
-        const q = searchTerm.toLowerCase();
-        const name = (item.name || item.title || '').toLowerCase();
-        const brand = (item.brand || item.vendorName || '').toLowerCase();
-        const cat = (item.category || '').toLowerCase();
-        if (!name.includes(q) && !brand.includes(q) && !cat.includes(q)) return false;
-      }
-
-      const p = getNumericPrice(item.pricePerUnit || item.price);
-      if (filters.priceMin && p < +filters.priceMin) return false;
-      if (filters.priceMax && p > +filters.priceMax) return false;
-      if (filters.vendors.length > 0 && !filters.vendors.includes(item.vendorType || item.brand)) return false;
-      if (filters.delivery.length > 0 && !(Array.isArray(item.deliveryType) && filters.delivery.some((d) => item.deliveryType.includes(d)))) {
-        return false;
-      }
-
-      return true;
-    });
-  }, [groceries, filters, searchTerm]);
-
   return (
-    <MasterListingPage
-      sector="grocery"
-      config={groceryListingConfig}
-      hooks={{
-        useItems: () => ({ items: filteredGroceries, loading, error }),
+    <UniversalCategoryGallery
+      categoryTitle="Groceries & Daily Essentials"
+      categorySubtitle="Fresh farm produce, staples, dairy & organic goods delivered to your doorstep."
+      breadcrumb="Groceries & Daily Needs"
+      useItems={useGroceries}
+      searchPlaceholder="Search fresh groceries, staples, vegetables, or dairy..."
+      mapping={{
+        id: (g) => g._id || g.id,
+        title: (g) => g.title || g.name,
+        image: (g) => (Array.isArray(g.images) ? g.images[0] : g.image),
+        price: (g) => g.price || (g.pricePerUnit ? `₹${g.pricePerUnit}` : null),
+        priceSuffix: (g) => g.unit || (g.pricePerUnit ? 'per unit' : ''),
+        location: (g) => g.location?.area || g.area || g.store?.city || 'Bengaluru',
+        pincode: (g) => g.pincode,
+        overline: (g) => g.category || 'Grocery & Essentials',
+        badges: (g) => [
+          g.organic && { label: 'Organic', className: 'bg-emerald-600 text-white font-bold' },
+          g.inStock !== false && { label: 'In Stock', className: 'bg-blue-600 text-white font-bold' },
+        ].filter(Boolean),
+        pills: (g) => [g.unit, g.origin || 'Locally Sourced', g.shelfLife].filter(Boolean),
+        detailUrl: (g) => `/grocery/${g._id || g.id}`,
       }}
-      topBarSlot={() => (
-        <div className="flex flex-col sm:flex-row items-center gap-3 my-4">
-          <div className="relative flex-1 w-full">
-            <i className="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none" />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search groceries (e.g. Organic mangoes, fresh milk, spices)..."
-              className="w-full rounded-2xl border border-gray-200 bg-white pl-11 pr-10 py-3 text-sm font-semibold text-brand-charcoal outline-none focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/20 transition-all shadow-2xs hover:shadow-xs"
-            />
-            {searchTerm && (
-              <button
-                type="button"
-                onClick={() => setSearchTerm('')}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 rounded-full p-1 text-gray-400 hover:text-brand-charcoal hover:bg-gray-100 transition-colors"
-                aria-label="Clear search"
-              >
-                <i className="fa-solid fa-xmark text-xs" />
-              </button>
-            )}
-          </div>
-        </div>
-      )}
-      sidebarComponent={() => (
-        <GroceryFilterSidebar
-          filters={filters}
-          openSections={openSections}
-          updateFilter={updateFilter}
-          toggleSection={toggleSection}
-          resetFilters={resetFilters}
-          cityAreas={cityAreas}
-        />
-      )}
+      filterGroups={FILTER_GROUPS}
+      rangeFilters={RANGE_FILTERS}
     />
   );
 }

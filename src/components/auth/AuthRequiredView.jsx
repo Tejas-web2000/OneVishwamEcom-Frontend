@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useAuth } from '../../store/authSlice';
 import { navigateTo } from '../../config/navigation';
 
@@ -8,8 +9,13 @@ export default function AuthRequiredView({
 }) {
   const { openAuthModal } = useAuth();
 
+  useEffect(() => {
+    sessionStorage.setItem('vishwam_auth_redirect', window.location.pathname + window.location.search);
+    openAuthModal('login');
+  }, [openAuthModal]);
+
   const handleLoginClick = () => {
-    sessionStorage.setItem('vishwam_auth_redirect', window.location.pathname);
+    sessionStorage.setItem('vishwam_auth_redirect', window.location.pathname + window.location.search);
     openAuthModal('login');
   };
 

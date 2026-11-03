@@ -1,12 +1,19 @@
 import axios from 'axios';
 import { auth } from './firebase/config';
 
+const DEFAULT_API_URL = 'https://asia-south1-onevishwam.cloudfunctions.net/api';
+
 const client = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
+  baseURL:
+    import.meta.env.VITE_API_BASE_URL ||
+    import.meta.env.VITE_API_URL ||
+    DEFAULT_API_URL,
   timeout: 15000,
   headers: { 'Content-Type': 'application/json' },
   validateStatus: (status) => status >= 200 && status < 400,
 });
+
+import { isJwtExpired } from './utils/tokenUtils';
 
 let isRefreshing = false;
 let failedQueue = [];
@@ -24,17 +31,38 @@ function processQueue(error, token = null) {
 
 client.interceptors.request.use(async (config) => {
   try {
+    if (auth && typeof auth.authStateReady === 'function') {
+      await auth.authStateReady();
+    }
     const currentUser = auth?.currentUser;
     if (currentUser) {
-      const idToken = await currentUser.getIdToken();
-      config.headers.Authorization = `Bearer ${idToken}`;
+      let idToken = await currentUser.getIdToken(false);
+      if (isJwtExpired(idToken)) {
+        idToken = await currentUser.getIdToken(true);
+      }
+      if (idToken) {
+        config.headers.Authorization = `Bearer ${idToken}`;
+        localStorage.setItem('accessToken', idToken);
+      }
     } else {
       const token = localStorage.getItem('accessToken');
-      if (token) config.headers.Authorization = `Bearer ${token}`;
+      if (token) {
+        if (isJwtExpired(token)) {
+          localStorage.removeItem('accessToken');
+        } else {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+      }
     }
   } catch {
     const token = localStorage.getItem('accessToken');
-    if (token) config.headers.Authorization = `Bearer ${token}`;
+    if (token) {
+      if (isJwtExpired(token)) {
+        localStorage.removeItem('accessToken');
+      } else {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    }
   }
   return config;
 });
@@ -57,8 +85,29 @@ client.interceptors.response.use(
       originalRequest._retry = true;
       isRefreshing = true;
 
+      // 1. First attempt to refresh via active Firebase user session
+      try {
+        if (auth && typeof auth.authStateReady === 'function') {
+          await auth.authStateReady();
+        }
+        const currentUser = auth?.currentUser;
+        if (currentUser) {
+          const freshToken = await currentUser.getIdToken(true);
+          if (freshToken) {
+            localStorage.setItem('accessToken', freshToken);
+            processQueue(null, freshToken);
+            originalRequest.headers.Authorization = `Bearer ${freshToken}`;
+            return client(originalRequest);
+          }
+        }
+      } catch (fbRefreshErr) {
+        console.warn('[API Client] Firebase token refresh failed:', fbRefreshErr);
+      }
+
+      // 2. Fallback: refresh via backend refreshToken if available
       const refreshToken = localStorage.getItem('refreshToken');
       if (!refreshToken) {
+        processQueue(err, null);
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('user');
@@ -207,6 +256,28 @@ export const financeOfferingAPI = {
   update: (id, body) => client.put(`/product/finance-offerings/${id}`, body),
   remove: (id) => client.delete(`/product/finance-offerings/${id}`),
   toggleStatus: (id) => client.patch(`/product/finance-offerings/${id}/status`),
+};
+
+// ─── Electronics ─────────────────────────────────────────────────────────────
+export const electronicsAPI = {
+  getAll: (params) => client.get('/product/electronics', { params }),
+  getById: (id) => client.get(`/product/electronics/${id}`),
+  getSimilar: (id) => client.get(`/product/electronics/${id}/similar`),
+  getMy: () => client.get('/product/electronics/my'),
+  update: (id, body) => client.put(`/product/electronics/${id}`, body),
+  remove: (id) => client.delete(`/product/electronics/${id}`),
+  toggleStatus: (id) => client.patch(`/product/electronics/${id}/status`),
+};
+
+// ─── Bedding & Sleep Comfort ──────────────────────────────────────────────────
+export const beddingAPI = {
+  getAll: (params) => client.get('/product/bedding', { params }),
+  getById: (id) => client.get(`/product/bedding/${id}`),
+  getSimilar: (id) => client.get(`/product/bedding/${id}/similar`),
+  getMy: () => client.get('/product/bedding/my'),
+  update: (id, body) => client.put(`/product/bedding/${id}`, body),
+  remove: (id) => client.delete(`/product/bedding/${id}`),
+  toggleStatus: (id) => client.patch(`/product/bedding/${id}/status`),
 };
 
 // ─── Homepage ────────────────────────────────────────────────────────────────

@@ -146,36 +146,38 @@ function AboutPage() {
 
           <div className="grid gap-5 lg:grid-cols-2">
             {/* Buy Platform */}
-            <div className="bg-gradient-to-br from-brand-blue to-blue-900 text-white rounded-3xl p-6 sm:p-8 shadow-md flex flex-col justify-between">
-              <div>
+            <div className="relative rounded-3xl bg-gradient-to-b from-[#d9ebfa] via-[#e8f2fb] to-[#cfe4f6] text-slate-900 p-6 sm:p-8 shadow-sm border border-sky-200/90 overflow-hidden flex flex-col justify-between">
+              <div className="absolute -top-12 -right-12 w-64 h-64 bg-sky-300/35 rounded-full blur-3xl pointer-events-none" />
+              <div className="relative z-10">
                 <div className="flex items-center gap-3.5 mb-4">
-                  <div className="w-11 h-11 rounded-2xl bg-yellow-400 flex items-center justify-center shadow">
-                    <i className="fa-solid fa-hand-holding-dollar text-brand-navy text-xl" />
+                  <div className="w-11 h-11 rounded-2xl bg-white text-brand-blue flex items-center justify-center shadow-xs border border-sky-300/70">
+                    <i className="fa-solid fa-hand-holding-dollar text-xl" />
                   </div>
                   <div>
-                    <span className="text-[11px] uppercase tracking-wider text-yellow-300 font-bold">Capital & Commodity Sourcing</span>
-                    <h3 className="text-xl sm:text-2xl font-bold">OneVishwam Buy</h3>
+                    <span className="text-[11px] uppercase tracking-wider text-brand-blue font-black">Capital &amp; Commodity Sourcing</span>
+                    <h3 className="text-xl sm:text-2xl font-black text-slate-900">OneVishwam Buy</h3>
                   </div>
                 </div>
-                <p className="text-white/90 text-xs sm:text-sm leading-relaxed text-justify">
+                <p className="text-slate-600 font-semibold text-xs sm:text-sm leading-relaxed text-justify">
                   Facilitates provision of money as a commodity, helping vendors, manufacturers and other parties sell their commodities at a better price, establishing strong long-term relationships for continuous supply and infrastructure projects.
                 </p>
               </div>
             </div>
 
             {/* Sell Platform */}
-            <div className="bg-gradient-to-br from-brand-navy to-slate-900 text-white rounded-3xl p-6 sm:p-8 shadow-md flex flex-col justify-between">
-              <div>
+            <div className="relative rounded-3xl bg-gradient-to-b from-[#d9ebfa] via-[#e8f2fb] to-[#cfe4f6] text-slate-900 p-6 sm:p-8 shadow-sm border border-sky-200/90 overflow-hidden flex flex-col justify-between">
+              <div className="absolute -top-12 -right-12 w-64 h-64 bg-sky-300/35 rounded-full blur-3xl pointer-events-none" />
+              <div className="relative z-10">
                 <div className="flex items-center gap-3.5 mb-4">
-                  <div className="w-11 h-11 rounded-2xl bg-yellow-400 flex items-center justify-center shadow">
-                    <i className="fa-solid fa-tag text-brand-navy text-xl" />
+                  <div className="w-11 h-11 rounded-2xl bg-white text-brand-blue flex items-center justify-center shadow-xs border border-sky-300/70">
+                    <i className="fa-solid fa-tag text-xl" />
                   </div>
                   <div>
-                    <span className="text-[11px] uppercase tracking-wider text-yellow-300 font-bold">Customer Marketplace</span>
-                    <h3 className="text-xl sm:text-2xl font-bold">OneVishwam Sell</h3>
+                    <span className="text-[11px] uppercase tracking-wider text-brand-blue font-black">Customer Marketplace</span>
+                    <h3 className="text-xl sm:text-2xl font-black text-slate-900">OneVishwam Sell</h3>
                   </div>
                 </div>
-                <p className="text-white/90 text-xs sm:text-sm leading-relaxed text-justify">
+                <p className="text-slate-600 font-semibold text-xs sm:text-sm leading-relaxed text-justify">
                   Facilitates selling products on a digital platform, helping customers buy commodities of their choice with integrated financial support like home loans, vehicle loans, and easy monthly EMI schemes — making big-budget assets simple and achievable.
                 </p>
               </div>
@@ -226,25 +228,29 @@ function AboutPage() {
       {/* ── 6. Bottom Action Card ── */}
       <section className="py-10 sm:py-12 bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <div className="rounded-3xl bg-gradient-to-r from-brand-navy via-brand-blue to-brand-navy p-6 sm:p-10 text-white shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="max-w-xl text-center md:text-left">
-              <h3 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-white">
+          <div className="relative rounded-3xl bg-gradient-to-b from-[#d9ebfa] via-[#e8f2fb] to-[#cfe4f6] p-6 sm:p-10 text-slate-900 shadow-sm border border-sky-200/90 flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden">
+            {/* Ambient Lighting matching footer theme */}
+            <div className="absolute -top-16 -right-16 w-80 h-80 bg-gradient-to-br from-sky-300/40 via-blue-200/25 to-transparent rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute -bottom-16 -left-16 w-80 h-80 bg-gradient-to-tr from-sky-300/40 via-blue-200/25 to-transparent rounded-full blur-3xl pointer-events-none" />
+
+            <div className="relative z-10 max-w-xl text-center md:text-left">
+              <h3 className="text-xl sm:text-2xl lg:text-3xl font-black text-slate-900 tracking-tight">
                 Ready to find your next opportunity?
               </h3>
-              <p className="mt-2 text-white/80 text-xs sm:text-sm leading-relaxed text-justify md:text-left">
+              <p className="mt-2 text-slate-600 font-semibold text-xs sm:text-sm leading-relaxed text-justify md:text-left">
                 Browse our verified properties or get in touch with our team for assistance with property investments and cooperative finance.
               </p>
             </div>
-            <div className="flex flex-wrap items-center justify-center gap-3 shrink-0">
+            <div className="relative z-10 flex flex-wrap items-center justify-center gap-3 shrink-0">
               <Link
                 to="/property"
-                className="inline-flex items-center gap-2 bg-yellow-400 text-brand-navy px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm hover:bg-yellow-300 transition-colors shadow-md"
+                className="inline-flex items-center gap-2 bg-brand-blue text-white px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm hover:bg-brand-navy transition-all shadow-md hover:scale-105 active:scale-95 cursor-pointer"
               >
                 <i className="fa-solid fa-house-chimney" /> Explore Properties
               </Link>
               <Link
                 to="/enquiry/"
-                className="inline-flex items-center gap-2 bg-white/10 text-white px-5 py-2.5 rounded-xl font-semibold text-xs sm:text-sm border border-white/20 hover:bg-white/20 transition-colors"
+                className="inline-flex items-center gap-2 bg-white text-slate-900 px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm border border-slate-300/90 hover:border-slate-400 hover:bg-slate-50 transition-all shadow-2xs hover:scale-105 active:scale-95 cursor-pointer"
               >
                 <i className="fa-solid fa-envelope" /> Enquiry
               </Link>

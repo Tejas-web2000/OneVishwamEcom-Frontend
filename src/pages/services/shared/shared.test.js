@@ -80,6 +80,13 @@ describe('Shared Utilities', () => {
       expect(loaded.filter).toBe('active');
     });
 
+    it('persists and restores page 7 for gallery return navigation', () => {
+      const galleryKey = 'gallery_page_/categories/automobile';
+      saveSessionState(galleryKey, { page: 7 });
+      const loaded = loadSessionState(galleryKey, { page: 1 });
+      expect(loaded.page).toBe(7);
+    });
+
     it('returns fallback for non-existent keys', () => {
       const loaded = loadSessionState('non_existent', { fallback: true });
       expect(loaded.fallback).toBe(true);

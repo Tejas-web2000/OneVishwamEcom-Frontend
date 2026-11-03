@@ -4,6 +4,8 @@
  * frontend contract for MasterListingCard and gallery grids.
  */
 
+import { ONEVISHWAM_VERIFIED_IMAGE, isPlaceholderImage } from '../../../../constants/fallbackImage';
+
 export function normalizeListing(rawItem, sector = '') {
   if (!rawItem) return null;
 
@@ -40,15 +42,18 @@ export function normalizeListing(rawItem, sector = '') {
   // Resolve image
   let image = '';
   if (Array.isArray(rawItem.images) && rawItem.images.length > 0) {
-    image = rawItem.images[0];
-  } else if (rawItem.image) {
+    image = rawItem.images.find(s => s && !isPlaceholderImage(s)) || '';
+  } else if (rawItem.image && !isPlaceholderImage(rawItem.image)) {
     image = rawItem.image;
-  } else if (rawItem.coverImage) {
+  } else if (rawItem.coverImage && !isPlaceholderImage(rawItem.coverImage)) {
     image = rawItem.coverImage;
-  } else if (rawItem.banner) {
+  } else if (rawItem.banner && !isPlaceholderImage(rawItem.banner)) {
     image = rawItem.banner;
-  } else if (rawItem.logo) {
+  } else if (rawItem.logo && !isPlaceholderImage(rawItem.logo)) {
     image = rawItem.logo;
+  }
+  if (!image || isPlaceholderImage(image)) {
+    image = ONEVISHWAM_VERIFIED_IMAGE;
   }
 
   // Resolve title
@@ -64,7 +69,7 @@ export function normalizeListing(rawItem, sector = '') {
   if (s.includes('vehicle') || s.includes('automobile')) {
     overline = rawItem.brand || rawItem.category || '';
   } else if (s.includes('property') || s.includes('real-estate')) {
-    const rawType = rawItem.subCategory || rawItem.category || rawItem.buildingType || '';
+    const rawType = rawItem.subcategory || rawItem.propertyType || rawItem.category || '';
     if (/apartment/i.test(rawType)) {
       overline = 'Flat';
     } else if (/plot|site/i.test(rawType)) {
@@ -108,7 +113,15 @@ export function normalizeListing(rawItem, sector = '') {
   // Resolve tag chips
   const tags = [];
   if (rawItem.bhk && rawItem.bhk !== 'N/A') tags.push(rawItem.bhk);
-  if (rawItem.area && typeof rawItem.area === 'string') tags.push(rawItem.area);
+  if (rawItem.area && typeof rawItem.area === 'string') {
+    const rawArea = rawItem.area.trim();
+    if (rawArea.includes('·') || rawArea.includes('•')) {
+      const parts = rawArea.split(/\s*[·•]\s*/).map((p) => p.trim()).filter(Boolean);
+      tags.push(...parts);
+    } else {
+      tags.push(rawArea);
+    }
+  }
   if (rawItem.fuelType) tags.push(rawItem.fuelType);
   if (rawItem.year) tags.push(String(rawItem.year));
   if (rawItem.fabric) tags.push(rawItem.fabric);
@@ -123,7 +136,7 @@ export function normalizeListing(rawItem, sector = '') {
   if (s.includes('property') || s.includes('real-estate')) {
     const sub = String(
       rawItem.subcategory ||
-      rawItem.subCategory ||
+      rawItem.propertyType ||
       rawItem.category ||
       rawItem.buildingType ||
       rawItem.subtitle ||
@@ -162,7 +175,7 @@ export function normalizeListing(rawItem, sector = '') {
     badges.push({ label: `${rawItem.discount}% OFF`, className: 'bg-emerald-600 text-white' });
   }
   if (rawItem.featured) {
-    badges.push({ label: 'Featured', className: 'bg-amber-400 text-brand-navy' });
+    badges.push({ label: 'Featured', className: 'bg-amber-400 text-slate-950 font-bold' });
   }
 
   // Resolve floor plans

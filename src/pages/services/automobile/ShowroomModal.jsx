@@ -104,7 +104,7 @@ function ShowroomModal({ vehicle, onOpenLoan, onClose }) {
 
             <div>
               <label className="mb-1 block text-xs font-semibold text-gray-500">Address</label>
-              <p className="text-sm text-gray-600">{vehicle.showroom.address}{vehicle.pincode ? ` — ${vehicle.pincode}` : ''}</p>
+              <p className="text-sm text-gray-600">{vehicle.showroom.address}{vehicle.pincode && !/\b\d{6}\b/.test(vehicle.showroom.address || '') && !String(vehicle.showroom.address || '').includes(vehicle.pincode) ? ` — ${vehicle.pincode}` : ''}</p>
             </div>
 
             <div className="space-y-3">
@@ -132,7 +132,7 @@ function ShowroomModal({ vehicle, onOpenLoan, onClose }) {
           <form onSubmit={handleLoanSubmit} className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
             <div className="rounded-xl bg-blue-50 px-4 py-3">
               <p className="text-sm font-semibold text-blue-800">{vehicle.brand} {vehicle.model}</p>
-              <p className="text-xs text-blue-600">{withRupeeSymbol(vehicle.price)} · {vehicle.showroom.name}</p>
+              <p className="text-xs text-blue-600">{vehicle.showroom.name}</p>
             </div>
 
             <label className="grid gap-1.5">

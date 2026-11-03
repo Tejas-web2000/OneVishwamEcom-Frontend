@@ -1,3 +1,5 @@
+import { useEffect } from 'react';
+
 /**
  * MobileFilterDrawer
  * The full-screen overlay + left slide-in drawer with sticky header and
@@ -12,6 +14,18 @@
  *   children      – filter sidebar JSX
  */
 export default function MobileFilterDrawer({ open, onClose, resultCount, resultLabel = 'Results', children }) {
+  // Lock body scroll when mobile filter drawer is open
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [open]);
+
   if (!open) return null;
 
   return (
@@ -35,11 +49,11 @@ export default function MobileFilterDrawer({ open, onClose, resultCount, resultL
         {/* Filter content */}
         <div className="px-5 py-4">{children}</div>
 
-        {/* Footer CTA */}
-        <div className="sticky bottom-0 bg-white border-t border-gray-100 px-5 py-4">
+        {/* Footer CTA with iOS safe area padding */}
+        <div className="sticky bottom-0 bg-white border-t border-gray-100 px-5 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-xs">
           <button
             onClick={onClose}
-            className="w-full bg-brand-blue text-white rounded-xl py-3 text-sm font-semibold hover:bg-blue-700 transition-colors"
+            className="w-full bg-brand-blue text-white rounded-xl py-3 text-sm font-semibold hover:bg-blue-700 transition-colors cursor-pointer"
           >
             Show {resultCount} {resultLabel}
           </button>

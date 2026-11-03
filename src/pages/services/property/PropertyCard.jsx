@@ -9,13 +9,9 @@ import {
   getStatusBadge,
   getPropertyCoverImage,
   formatPropertyDisplayPrice,
+  formatPropertyAddress,
 } from './propertyHelpers';
-
-const FALLBACK_IMG =
-  'data:image/svg+xml,' +
-  encodeURIComponent(
-    `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" fill="none"><rect width="400" height="300" fill="#f3f4f6"/><path fill="#9ca3af" d="M160 130h80v-10l-40-40-40 40v10zm-20 50h120v-60l-40-40-80 80v20z"/></svg>`,
-  );
+import { ONEVISHWAM_VERIFIED_IMAGE, isPlaceholderImage } from '../../../constants/fallbackImage';
 
 const EMPTY_ARRAY = [];
 
@@ -31,7 +27,8 @@ function PropertyCardImpl({ property }) {
 
   const id = property._id || property.id;
   const link = id ? `/property/${id}` : '#';
-  const image = getPropertyCoverImage(property);
+  const rawImage = getPropertyCoverImage(property);
+  const image = isPlaceholderImage(rawImage) ? ONEVISHWAM_VERIFIED_IMAGE : rawImage;
   const title = property.title || property.name || 'Property';
   const typeLabel = getPropertyTypeLabel(property);
   const tags = (getDetailTags(property) || []).slice(0, 2);
@@ -90,7 +87,7 @@ function PropertyCardImpl({ property }) {
           />
         ) : (
           <img
-            src={FALLBACK_IMG}
+            src={ONEVISHWAM_VERIFIED_IMAGE}
             alt=""
             className={`absolute inset-0 h-full w-full object-cover object-center ${
               isSoldOut ? 'filter grayscale contrast-100' : ''
@@ -127,44 +124,23 @@ function PropertyCardImpl({ property }) {
           </h3>
         </div>
 
-        {/* Price */}
-        <div className="min-h-[1.5rem] my-1">
-          {isSoldOut ? (
-            <p className="text-sm font-bold text-red-600">Sold Out</p>
-          ) : property.priceType === 'on-request' ? (
-            <p className="text-base font-extrabold text-brand-gold">Price on Request</p>
-          ) : (
-            display.price != null && display.price !== '' && (
-              <p className="text-base font-extrabold text-brand-blue">
-                {display.price === 'This is negotiable'
-                  ? display.price
-                  : typeof display.price === 'number' ||
-                    (typeof display.price === 'string' &&
-                      /^\d/.test(display.price.replace(/[₹,\s]/g, '')))
-                  ? formatINR(display.price)
-                  : withRupeeSymbol(display.price)}
-                {display.priceSuffix && (
-                  <span className="text-xs font-normal text-gray-400 ml-1">
-                    {display.priceSuffix}
-                  </span>
-                )}
-                {property.priceType === 'negotiable' && display.price !== 'This is negotiable' && (
-                  <span className="ml-1.5 text-[9px] font-bold text-brand-gold bg-brand-gold/10 px-2 py-0.5 rounded-full">
-                    Negotiable
-                  </span>
-                )}
-              </p>
-            )
-          )}
-        </div>
+        {/* Status / Sold Out */}
+        {(isSoldOut || isInactive) && (
+          <div className="min-h-[1.5rem] my-1">
+            {isSoldOut ? (
+              <p className="text-sm font-bold text-red-600">Sold Out</p>
+            ) : (
+              <p className="text-sm font-bold text-amber-600">Inactive</p>
+            )}
+          </div>
+        )}
 
         {/* Location */}
-        {(property.location || property.city) && !isSoldOut && !isInactive && (
+        {(property.location || property.city || property.address) && !isSoldOut && !isInactive && (
           <div className="mt-1 flex items-center gap-1.5 text-xs text-gray-500 min-w-0">
             <i className="fa-solid fa-location-dot text-brand-blue text-[11px] shrink-0" />
             <span className="truncate font-medium">
-              {property.location || property.city}
-              {property.pincode ? ` · ${property.pincode}` : ''}
+              {formatPropertyAddress(property)}
             </span>
           </div>
         )}
@@ -175,9 +151,9 @@ function PropertyCardImpl({ property }) {
             {cardTags.map((t, i) => (
               <span
                 key={i}
-                className="bg-gray-100/80 rounded-md px-2 py-0.5 font-medium whitespace-nowrap"
+                className="bg-gray-100/80 rounded-md px-2 py-0.5 font-medium max-w-full inline-flex items-center truncate"
               >
-                {t}
+                <span className="truncate">{t}</span>
               </span>
             ))}
           </div>
@@ -215,13 +191,24 @@ function PropertyCardImpl({ property }) {
           </div>
         )}
 
-        {/* View Details / Status */}
+        {/* Action Button / Status */}
         {!isSoldOut && !isInactive ? (
           <div className="mt-auto pt-3">
-            <div className="w-full rounded-xl bg-gray-50 border border-gray-100 group-hover:bg-brand-blue group-hover:text-white group-hover:border-brand-blue text-brand-charcoal text-center text-xs font-bold py-2.5 transition-all duration-200 flex items-center justify-center gap-1.5 shadow-xs">
-              <span>View Details</span>
-              <i className="fa-solid fa-arrow-right text-[10px] group-hover:translate-x-0.5 transition-transform" />
-            </div>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                window.dispatchEvent(
+                  new CustomEvent('onevishwam:open_enquiry_modal', {
+                    detail: { title: title || 'Property Enquiry' },
+                  })
+                );
+              }}
+              className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 px-4 py-2.5 text-xs sm:text-sm font-extrabold transition-all shadow-xs hover:shadow-md cursor-pointer active:scale-[0.98]"
+            >
+              <i className="fa-solid fa-handshake-angle text-xs text-slate-950" />
+              <span>Are You Interested?</span>
+            </button>
           </div>
         ) : (
           <div className="mt-auto pt-3 text-center">

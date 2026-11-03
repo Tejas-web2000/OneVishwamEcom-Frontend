@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-
-const LOTTIE_JSON_URL = 'https://lottie.host/810023d6-0124-4d5c-b555-bab81c478baf/UVxowlsHdU.json';
+import LottieFeedbackAnimation from './LottieFeedbackAnimation';
 
 export default function LottieComingSoon({
   title = 'Category Coming Soon',
@@ -12,13 +11,11 @@ export default function LottieComingSoon({
     <div className="w-full flex flex-col items-center justify-center p-6 text-center animate-fade-in">
       {/* Lottie Animation Container */}
       <div className="relative w-full max-w-sm sm:max-w-md mx-auto aspect-square sm:aspect-video flex items-center justify-center rounded-2xl overflow-hidden mb-4">
-        <dotlottie-player
-          src={LOTTIE_JSON_URL}
-          background="transparent"
-          speed="1"
+        <LottieFeedbackAnimation
+          type="comingSoon"
+          size="lg"
+          fallbackIcon={icon}
           style={{ width: '100%', height: '100%', maxHeight: '280px' }}
-          loop
-          autoplay
         />
       </div>
 
@@ -41,11 +38,11 @@ export default function LottieComingSoon({
         {/* Action Buttons */}
         <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
           <Link
-            to="/our-services"
+            to="/categories"
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-brand-blue text-white text-xs font-bold shadow-md shadow-brand-blue/20 hover:bg-brand-navy hover:shadow-lg transition-all"
           >
             <i className="fa-solid fa-table-cells text-xs" />
-            Explore All Services
+            Explore All Categories
           </Link>
           <Link
             to="/"

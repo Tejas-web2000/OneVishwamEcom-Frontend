@@ -1,18 +1,27 @@
 export const marketplaceCategories = [
   {
+    id: 'all-categories',
+    label: 'All Categories',
+    shortDesc: 'Properties, automobiles, electronics & comfort living',
+    href: '/categories',
+    icon: 'fa-solid fa-shapes',
+    image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=600&q=80',
+    disabled: false,
+  },
+  {
     id: 'properties',
     label: 'Properties',
     shortDesc: 'Houses, flats, lands, plots & commercial',
-    href: '/our-services/properties',
+    href: '/categories/properties',
     icon: 'fa-solid fa-house-chimney',
     image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=600&q=80',
     disabled: false,
   },
   {
     id: 'automobile',
-    label: 'Vehicles & Autos',
+    label: 'Automobiles',
     shortDesc: 'Cars, bikes & commercial vehicles',
-    href: '/our-services/automobile',
+    href: '/categories/automobile',
     icon: 'fa-solid fa-car',
     image: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=600&q=80',
     disabled: false,
@@ -21,20 +30,21 @@ export const marketplaceCategories = [
     id: 'consumer-electronics',
     label: 'Consumer Electronics',
     shortDesc: 'TVs, Mobiles, Air Conditioners & Appliances',
-    href: '/our-services/consumer-electronics',
+    href: '/categories/consumer-electronics',
     icon: 'fa-solid fa-tv',
     image: 'https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?auto=format&fit=crop&w=600&q=80',
     disabled: false,
   },
   {
     id: 'bedding-comfort',
-    label: 'Bedding & Comfort',
+    label: 'Comfort',
     shortDesc: 'Mattresses, pillows, bedsheets & linen',
-    href: '/our-services/bedding-comfort',
+    href: '/categories/bedding-comfort',
     icon: 'fa-solid fa-bed',
     image: 'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?auto=format&fit=crop&w=600&q=80',
     disabled: false,
   },
+  /* ── Upcoming Categories (Commented out) ──────────────────────────
   {
     id: 'finance-lending',
     label: 'Finance & Loans',
@@ -115,4 +125,5 @@ export const marketplaceCategories = [
     disabled: false,
     hasNoData: true,
   },
+  ── End Upcoming Categories ─────────────────────────────────────── */
 ];

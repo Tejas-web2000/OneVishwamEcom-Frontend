@@ -29,18 +29,18 @@ export const serviceItems = [
   },
   {
     id: 'jewellery-gold',
-    title: 'Jewellery & Gold',
-    description: 'Buy gold, sell old jewellery, get gold loans, or buy new jewellery on EMI.',
+    title: 'Jewellery',
+    description: 'Hallmarked gold, certified diamonds, fine silver and custom bridal jewellery collections.',
     image: 'https://images.pexels.com/photos/28933800/pexels-photo-28933800.jpeg?cs=srgb&dl=pexels-vedat-28933800.jpg&fm=jpg',
     details: {
-      overviewText: 'We buy and sell gold, silver, and jewellery. You can also get a gold loan or buy jewellery on easy EMI.',
+      overviewText: 'We connect you with certified jewellers offering BIS hallmarked gold, lab-certified diamonds, silver articles, and trusted gold exchange solutions.',
       sections: [
         {
           title: 'What We Offer',
           items: [
-            'Buy Gold', 'Sell Old Jewellery', 'Exchange Gold', 'Gold Loan',
-            'Buy New Jewellery', 'Diamond Jewellery', 'Silver Items',
-            'Buy Jewellery on EMI'
+            'BIS Hallmarked Gold', 'Certified Diamond Jewellery', 'Fine Silver Articles',
+            'Gold Exchange & Evaluation', 'Custom Bridal Sets', 'Gold Loan Assistance',
+            'Precious Gemstones', 'Jewellery EMI Schemes'
           ]
         }
       ]
@@ -48,27 +48,27 @@ export const serviceItems = [
   },
   {
     id: 'automobile',
-    title: 'Vehicles',
-    description: 'Buy two-wheelers, cars, and commercial vehicles. Get loan and EMI support.',
+    title: 'Automobiles',
+    description: 'Certified pre-owned and new cars, two-wheelers, and commercial vehicles with loan assistance.',
     image: 'https://images.pexels.com/photos/8621747/pexels-photo-8621747.jpeg?cs=srgb&dl=pexels-jamies-x-co-8621747.jpg&fm=jpg',
     details: {
-      overviewText: 'We help you buy new or used vehicles — bikes, cars, and commercial vehicles. We also help with loans and insurance.',
+      overviewText: 'Explore quality inspected automobiles — family SUVs, electric two-wheelers, and commercial vehicles. We also assist with instant loans and insurance verification.',
       sections: [
         {
-          title: 'Types of Vehicles',
+          title: 'Types of Automobiles',
           items: [
-            'Motorcycle / Scooter', 'Three Wheeler', 'Car', 'SUV', 'Electric Vehicle',
-            'Commercial Vehicle', 'Truck', 'Bus', 'Construction Vehicle', 'Tractor'
+            'Motorcycles & Scooters', 'Electric Vehicles (EVs)', 'Hatchbacks & Sedans', 'SUVs & MUVs',
+            'Commercial Fleets', 'Buses & Trucks', 'Pre-Owned Verified Cars', 'Tractors'
           ]
         },
         {
-          title: 'Extra Help',
+          title: 'Automobile Services',
           items: [
-            'Vehicle Loan', 'Insurance Help', 'Registration Help'
+            'Instant Vehicle Loan', 'RTO & Registration Support', 'Insurance Assistance'
           ],
         }
       ],
-      specialFeatures: ['We offer vehicle loans and easy EMI options.']
+      specialFeatures: ['We offer instant vehicle loan pre-approval and easy EMI options.']
     }
   },
   {
@@ -214,7 +214,7 @@ export const serviceItems = [
   },
   {
     id: 'bedding-comfort',
-    title: 'Bedding & Comfort',
+    title: 'Comfort',
     description: 'Affordable mattresses, orthopedic pillows, bedsheets, comforters, and everyday sleep essentials.',
     image: 'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?auto=format&fit=crop&w=1800&q=80',
     details: {

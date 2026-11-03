@@ -1,6 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Link, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { SectorPageTemplate } from '../../../../components/templates/SectorPageTemplate';
-import { SectorPageHeader } from '../../../../components/ui/SectorPageHeader';
+import { SectorPageHeader, Breadcrumbs } from '../../../../components/ui';
 import CategoryPillStrip from '../CategoryPillStrip';
 import ResultsBar from '../ResultsBar';
 import { applySort } from '../sortBy';
@@ -9,6 +10,7 @@ import Fab from '../Fab';
 import Pagination from '../Pagination';
 import MobileFilterDrawer from '../../../../components/MobileFilterDrawer';
 import { LoadingSpinner, ErrorState } from '../LoadingError';
+import { loadSessionState, saveSessionState } from '../sessionStore';
 
 const STATUS_KEYS = new Set(['loading', 'error', 'retry']);
 
@@ -68,12 +70,49 @@ export default function MasterListingPage({
   const loading = !!listResult.loading;
   const error = listResult.error || null;
 
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { pathname } = useLocation();
+  const sessionKey = useMemo(() => `master_list_page_${pathname}`, [pathname]);
+
+  const getInitialPage = () => {
+    const fromUrl = parseInt(searchParams.get('page'), 10);
+    if (!isNaN(fromUrl) && fromUrl > 0) return fromUrl;
+    const fromSession = loadSessionState(sessionKey, { page: 1 })?.page;
+    if (typeof fromSession === 'number' && fromSession > 0) return fromSession;
+    return 1;
+  };
+
   // Local UI State
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('latest');
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(getInitialPage);
+
+  const handlePageChange = (n) => {
+    const target = Math.max(1, n);
+    setPage(target);
+    saveSessionState(sessionKey, { page: target });
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (target > 1) {
+        next.set('page', String(target));
+      } else {
+        next.delete('page');
+      }
+      return next;
+    }, { replace: true });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    const fromUrl = parseInt(searchParams.get('page'), 10);
+    if (!isNaN(fromUrl) && fromUrl > 0 && fromUrl !== page) {
+      setPage(fromUrl);
+      saveSessionState(sessionKey, { page: fromUrl });
+    }
+  }, [searchParams, sessionKey]);
 
   // Filter items by category & search term
   const filteredItems = useMemo(() => {
@@ -107,7 +146,12 @@ export default function MasterListingPage({
 
   return (
     <SectorPageTemplate>
-      {/* Page Header — no Back button */}
+      {/* ── Top Navigation & Breadcrumbs ── */}
+      <div className="pt-2 pb-1 mb-3">
+        <Breadcrumbs categoryName={title} />
+      </div>
+
+      {/* Page Header */}
       {customHeader ? (
         customHeader({ total: filteredItems.length, items })
       ) : (
@@ -185,10 +229,7 @@ export default function MasterListingPage({
                 <Pagination
                   currentPage={page}
                   totalPages={totalPages}
-                  onPageChange={(p) => {
-                    setPage(p);
-                    window.scrollTo(0, 300);
-                  }}
+                  onPageChange={handlePageChange}
                 />
               </div>
             )}

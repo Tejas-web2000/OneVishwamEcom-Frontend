@@ -5,16 +5,17 @@ import { useLocation } from '../../store/locationSlice';
 import { matchesSearch } from '../../utils/searchUtils';
 
 const CATEGORY_TABS = [
-  { id: 'all',                    label: 'All',          icon: 'fa-solid fa-layer-group' },
-  { id: 'properties',             label: 'Properties',   icon: 'fa-solid fa-house-chimney', href: '/our-services/properties' },
-  { id: 'automobile',             label: 'Vehicles',      icon: 'fa-solid fa-car',            href: '/our-services/automobile' },
-  { id: 'consumer-electronics',   label: 'Electronics',   icon: 'fa-solid fa-tv',             href: '/our-services/consumer-electronics' },
-  { id: 'bedding-comfort',        label: 'Bedding',       icon: 'fa-solid fa-bed',            href: '/our-services/bedding-comfort' },
-  { id: 'finance-lending',        label: 'Finance',       icon: 'fa-solid fa-building-columns', href: '/our-services/finance-lending' },
+  { id: 'all',                    label: 'All Categories', icon: 'fa-solid fa-shapes',         href: '/categories' },
+  { id: 'properties',             label: 'Properties',   icon: 'fa-solid fa-house-chimney', href: '/categories/properties' },
+  { id: 'automobile',             label: 'Automobiles',  icon: 'fa-solid fa-car',            href: '/categories/automobile' },
+  { id: 'consumer-electronics',   label: 'Electronics',  icon: 'fa-solid fa-tv',             href: '/categories/consumer-electronics' },
+  { id: 'bedding-comfort',        label: 'Comfort',      icon: 'fa-solid fa-bed',            href: '/categories/bedding-comfort' },
+  { id: 'finance-lending',        label: 'Finance',      icon: 'fa-solid fa-building-columns', href: '/categories/finance-lending' },
 ];
 
 const POPULAR_CHIPS = [
   'Gated Plots Bengaluru',
+  'Commercial Spaces',
   'Maruti Brezza',
   'Orthopedic Mattress',
   '5 Star AC',
@@ -23,9 +24,10 @@ const POPULAR_CHIPS = [
 
 const BADGE_CLS = {
   Properties:       'bg-blue-100 text-blue-800 border-blue-200',
-  'Houses & Land':  'bg-blue-100 text-blue-800 border-blue-200',
+  Automobiles:      'bg-emerald-100 text-emerald-800 border-emerald-200',
   Vehicles:         'bg-emerald-100 text-emerald-800 border-emerald-200',
   Electronics:      'bg-rose-100 text-rose-800 border-rose-200',
+  Comfort:          'bg-purple-100 text-purple-800 border-purple-200',
   Bedding:          'bg-purple-100 text-purple-800 border-purple-200',
   'Finance & Loans': 'bg-amber-100 text-amber-900 border-amber-200',
 };
@@ -90,36 +92,28 @@ export default function CategorySearchHero() {
   const isDropdownOpen = showResultsDropdown && internalQuery.trim().length >= 2;
 
   return (
-    <section className="relative bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 py-16 sm:py-24 lg:py-28 border-t border-b border-slate-800/80 shadow-2xl">
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{ background: 'radial-gradient(ellipse 90% 70% at 50% 10%, rgba(30,58,138,0.45) 0%, rgba(15,23,42,0.85) 60%, transparent 100%)' }}
-      />
-      <div
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-amber-500/10 blur-[100px] rounded-full pointer-events-none"
-      />
-      <div
-        className="absolute inset-0 pointer-events-none opacity-[0.035]"
-        style={{ backgroundImage: 'radial-gradient(circle, #ffffff 1px, transparent 1px)', backgroundSize: '24px 24px' }}
-      />
+    <section className="relative bg-gradient-to-b from-[#d9ebfa] via-[#e8f2fb] to-[#cfe4f6] py-12 sm:py-16 lg:py-20 border-t border-b border-sky-200/90 shadow-sm overflow-hidden">
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[760px] h-[380px] bg-gradient-to-tr from-sky-300/35 via-blue-200/25 to-transparent rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-10 left-10 w-96 h-96 bg-sky-300/35 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -top-10 right-10 w-96 h-96 bg-blue-200/30 rounded-full blur-3xl pointer-events-none" />
 
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-5xl text-center">
-          <div className="inline-flex items-center gap-2 rounded-full bg-blue-500/15 border border-blue-500/30 px-3.5 py-1 text-[11px] font-extrabold text-blue-300 mb-4">
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+          <div className="inline-flex items-center gap-2 rounded-full bg-white/90 border border-sky-300/80 px-3.5 py-1 text-[11px] font-extrabold text-brand-blue shadow-2xs mb-4">
+            <span className="w-1.5 h-1.5 rounded-full bg-brand-blue" />
             Universal Marketplace Search
           </div>
 
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-white leading-tight max-w-3xl mx-auto">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-slate-950 leading-tight max-w-3xl mx-auto">
             Find Anything You Need{' '}
-            <span className="text-amber-400 underline decoration-amber-400/40 decoration-4 underline-offset-4">
+            <span className="text-brand-blue underline decoration-brand-blue/40 decoration-4 underline-offset-4">
               Near You
             </span>
           </h2>
 
-          <p className="mt-2 text-sm sm:text-base text-slate-300 max-w-2xl mx-auto leading-relaxed">
+          <p className="mt-2 text-sm sm:text-base text-slate-600 font-semibold max-w-2xl mx-auto leading-relaxed">
             Search verified properties, vehicles, electronics, bedding &amp; loans in{' '}
-            <strong className="text-white">{getCityLabel(selectedCity)}</strong> — instantly.
+            <strong className="text-slate-900">{getCityLabel(selectedCity)}</strong> — instantly.
           </p>
 
           <div className="mt-8 space-y-4 max-w-4xl mx-auto">

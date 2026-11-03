@@ -14,7 +14,7 @@ export function FilterToggle({ checked, onChange, label, icon }) {
           onChange={(e) => onChange && onChange(e.target.checked)}
           className="sr-only peer"
         />
-        <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-navy"></div>
+        <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-blue"></div>
       </div>
       <span className="text-xs font-semibold text-brand-charcoal flex items-center gap-1">
         {icon && <i className={`${icon} text-gray-400 text-xs`} />}
@@ -70,14 +70,14 @@ export function TopFilterBar({
           aria-expanded={isExpanded}
         >
           <div className="flex items-center gap-2 min-w-0">
-            <i className="fa-solid fa-location-dot text-brand-navy text-sm shrink-0" />
-            <span className="font-bold text-brand-navy text-sm truncate">
+            <i className="fa-solid fa-location-dot text-brand-blue text-sm shrink-0" />
+            <span className="font-bold text-slate-900 text-sm truncate">
               {areaValue ? `${areaValue}, ${formattedCity}` : formattedCity}
             </span>
           </div>
 
           <i
-            className={`fa-solid fa-chevron-down text-brand-navy text-xs transition-transform duration-200 shrink-0 ml-1 ${
+            className={`fa-solid fa-chevron-down text-slate-600 text-xs transition-transform duration-200 shrink-0 ml-1 ${
               isExpanded ? 'rotate-180' : ''
             }`}
           />
@@ -91,7 +91,7 @@ export function TopFilterBar({
             value={requirementValue}
             onChange={(e) => onRequirementChange && onRequirementChange(e.target.value)}
             placeholder={requirementPlaceholder || 'Search...'}
-            className="w-full rounded-full border-2 border-brand-blue bg-white pl-10 pr-10 py-2.5 text-sm font-medium text-brand-charcoal outline-none focus:border-brand-navy focus:ring-2 focus:ring-brand-blue/20 transition-all shadow-xs"
+            className="w-full rounded-full border-2 border-brand-blue bg-white pl-10 pr-10 py-2.5 text-sm font-medium text-brand-charcoal outline-none focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/20 transition-all shadow-xs"
           />
           {requirementValue && (
             <button
@@ -112,7 +112,7 @@ export function TopFilterBar({
           <Link
             to={postRequirementLink}
             onClick={onPostRequirementClick}
-            className="rounded-full border-2 border-dashed border-blue-200 bg-blue-50/50 hover:bg-blue-100/70 text-brand-navy font-bold px-4 sm:px-5 py-2.5 text-xs sm:text-sm flex items-center justify-center gap-2 transition-colors shrink-0 shadow-xs active:scale-[0.98]"
+            className="rounded-full border-2 border-dashed border-[#c0dbf1] bg-[#e8f2fb]/60 hover:bg-[#e8f2fb] text-brand-blue font-bold px-4 sm:px-5 py-2.5 text-xs sm:text-sm flex items-center justify-center gap-2 transition-colors shrink-0 shadow-xs active:scale-[0.98]"
           >
             {postRequirementIcon && <i className={postRequirementIcon} />}
             <span>{postRequirementLabel}</span>

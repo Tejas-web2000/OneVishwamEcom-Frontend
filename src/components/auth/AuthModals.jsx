@@ -2,6 +2,8 @@ import { useState, useRef, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import { useAuth } from '../../store/authSlice';
 import { navigateTo } from '../../config/navigation';
+import { auth } from '../../firebase/config';
+import { isJwtExpired } from '../../utils/tokenUtils';
 import logo from '../../assets/logo.png';
 
 const RULES = [
@@ -139,7 +141,12 @@ function LoginForm({ onSwitch, onClose }) {
 
   const handleGoogleSignIn = async () => {
     try {
-      await loginWithGoogle().unwrap();
+      const u = await loginWithGoogle().unwrap();
+      const phone = u?.phoneNumber || u?.mobile || '';
+      if (!phone || !phone.trim()) {
+        switchAuthMode('require-phone');
+        return;
+      }
       Swal.fire({
         icon: 'success',
         title: 'Signed in with Google!',
@@ -154,7 +161,15 @@ function LoginForm({ onSwitch, onClose }) {
         sessionStorage.removeItem('vishwam_auth_redirect');
         navigateTo(redirect);
       }
-    } catch {}
+    } catch (err) {
+      console.error('[Google Sign-In Error]:', err);
+      Swal.fire({
+        icon: 'error',
+        title: 'Sign In Failed',
+        text: typeof err === 'string' ? err : (err?.message || 'Google sign-in failed'),
+        confirmButtonColor: '#1d4ed8',
+      });
+    }
   };
 
   return (
@@ -298,7 +313,7 @@ function LoginForm({ onSwitch, onClose }) {
 
 // ─── REGISTER FORM ────────────────────────────────────────────────────────────
 function RegisterForm({ onSwitch, onClose }) {
-  const { register, loginWithGoogle, loading, error, clearError } = useAuth();
+  const { register, loginWithGoogle, loading, error, clearError, switchAuthMode } = useAuth();
   const [form, setForm] = useState({ name: '', phone: '', email: '', password: '', confirm: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
@@ -306,8 +321,8 @@ function RegisterForm({ onSwitch, onClose }) {
   function validate() {
     const e = {};
     if (!form.name.trim()) e.name = 'Full name is required';
-    if (!form.phone.trim()) e.phone = 'Phone number is required';
-    else if (!/^\d{10}$/.test(form.phone.replace(/[\s-]/g, ''))) e.phone = 'Invalid 10-digit mobile number';
+    if (!form.phone.trim()) e.phone = 'Mobile number is mandatory and required';
+    else if (!/^[6-9]\d{9}$/.test(form.phone.replace(/[\s-]/g, ''))) e.phone = 'Please enter a valid 10-digit mobile number';
     if (!form.email.trim()) e.email = 'Email is required';
     else if (!/^\S+@\S+\.\S+$/.test(form.email)) e.email = 'Invalid email';
     if (!form.password) e.password = 'Password is required';
@@ -349,12 +364,22 @@ function RegisterForm({ onSwitch, onClose }) {
         position: 'top-end',
       });
       onClose();
+      const redirect = sessionStorage.getItem('vishwam_auth_redirect');
+      if (redirect) {
+        sessionStorage.removeItem('vishwam_auth_redirect');
+        navigateTo(redirect);
+      }
     } catch {}
   };
 
   const handleGoogleSignIn = async () => {
     try {
-      await loginWithGoogle().unwrap();
+      const u = await loginWithGoogle().unwrap();
+      const phone = u?.phoneNumber || u?.mobile || '';
+      if (!phone || !phone.trim()) {
+        switchAuthMode('require-phone');
+        return;
+      }
       Swal.fire({
         icon: 'success',
         title: 'Signed in with Google!',
@@ -369,7 +394,15 @@ function RegisterForm({ onSwitch, onClose }) {
         sessionStorage.removeItem('vishwam_auth_redirect');
         navigateTo(redirect);
       }
-    } catch {}
+    } catch (err) {
+      console.error('[Google Sign-In Error]:', err);
+      Swal.fire({
+        icon: 'error',
+        title: 'Sign In Failed',
+        text: typeof err === 'string' ? err : (err?.message || 'Google sign-in failed'),
+        confirmButtonColor: '#1d4ed8',
+      });
+    }
   };
 
   return (
@@ -407,7 +440,7 @@ function RegisterForm({ onSwitch, onClose }) {
       {/* Phone Input */}
       <div className="relative pt-1.5">
         <span className="absolute top-0 left-3.5 bg-white px-1.5 text-[11px] font-bold text-brand-blue z-10 tracking-wide select-none">
-          Mobile Number
+          Mobile Number <span className="text-red-500 font-bold">*</span>
         </span>
         <div
           className={`flex items-center gap-3 px-3.5 py-2 sm:py-2.5 rounded-xl border bg-white transition-all ${
@@ -883,14 +916,275 @@ function ResetSuccessView({ onClose }) {
   );
 }
 
+// ─── REQUIRE PHONE FORM (MANDATORY FOR SOCIAL LOGIN) ─────────────────────────
+function RequirePhoneForm({ onClose }) {
+  const { user, updateProfile, loading, error, clearError, logout, switchAuthMode } = useAuth();
+  const [phone, setPhone] = useState('');
+  const [phoneError, setPhoneError] = useState('');
+
+  const isSessionExpired =
+    (error && /expired|unauthorized/i.test(error)) ||
+    (phoneError && /expired|unauthorized/i.test(phoneError));
+
+  const handleSessionExpiredLogin = async () => {
+    try {
+      await logout();
+    } catch {
+      // ignore
+    }
+    switchAuthMode('login');
+  };
+
+  const validatePhone = (val) => {
+    const digits = (val || '').replace(/[\s-]/g, '');
+    if (!digits) return 'Mobile number is mandatory and required';
+    if (!/^[6-9]\d{9}$/.test(digits)) return 'Please enter a valid 10-digit mobile number starting with 6-9';
+    return '';
+  };
+
+  const resolveErrorMessage = (raw) => {
+    if (!raw) return '';
+    const str = String(raw);
+    if ((/duplicate key|E11000|already registered/i.test(str)) && !/null/i.test(str)) {
+      return 'This mobile number is already registered with another account. Please use a different number.';
+    }
+    return str;
+  };
+
+  const displayError = resolveErrorMessage(phoneError || error);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const err = validatePhone(phone);
+    if (err) {
+      setPhoneError(err);
+      return;
+    }
+
+    try {
+      const cleanPhone = phone.replace(/[\s-]/g, '');
+      await updateProfile({
+        name: user?.name || user?.fullName || 'User',
+        fullName: user?.fullName || user?.name || 'User',
+        phoneNumber: cleanPhone,
+        mobile: cleanPhone,
+        role: 'user',
+      }).unwrap();
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Registration Complete!',
+        text: 'Your mobile number has been registered.',
+        timer: 1500,
+        showConfirmButton: false,
+        toast: true,
+        position: 'top-end',
+      });
+      onClose();
+
+      const redirect = sessionStorage.getItem('vishwam_auth_redirect');
+      if (redirect) {
+        sessionStorage.removeItem('vishwam_auth_redirect');
+        navigateTo(redirect);
+      }
+    } catch (apiErr) {
+      const msg = typeof apiErr === 'string' ? apiErr : (apiErr?.message || 'Failed to save mobile number');
+      setPhoneError(resolveErrorMessage(msg));
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {isSessionExpired ? (
+        <div className="rounded-xl bg-amber-50 border border-amber-200 p-3.5 text-xs text-amber-900 space-y-2">
+          <div className="flex items-center gap-2 font-bold text-amber-800">
+            <i className="fa-solid fa-clock-rotate-left text-amber-600" />
+            <span>Session Expired</span>
+          </div>
+          <p className="text-[11px] text-amber-700 leading-relaxed">
+            Your login session has expired. Please sign in again to complete your account registration.
+          </p>
+          <button
+            type="button"
+            onClick={handleSessionExpiredLogin}
+            className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-brand-blue to-brand-navy hover:from-[#153e74] hover:to-[#07162c] text-white text-xs font-black tracking-widest uppercase transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer mt-1"
+          >
+            <i className="fa-solid fa-arrow-right-to-bracket" />
+            <span>SIGN IN AGAIN</span>
+          </button>
+        </div>
+      ) : (
+        <>
+          {displayError && (
+            <div className="rounded-xl bg-red-50 border border-red-200 px-3.5 py-2 text-xs text-red-600 font-medium">
+              {displayError}
+            </div>
+          )}
+        </>
+      )}
+
+      <div className="text-center mb-3">
+        <div className="w-12 h-12 rounded-2xl bg-brand-blue/10 text-brand-blue mx-auto flex items-center justify-center text-xl mb-2">
+          <i className="fa-solid fa-mobile-screen-button" />
+        </div>
+        <h3 className="text-sm font-bold text-slate-800">Mobile Number Required</h3>
+        <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+          Please enter your mobile number to complete registration. This is mandatory for all OneVishwam accounts.
+        </p>
+      </div>
+
+      <div className="relative pt-1.5">
+        <span className="absolute top-0 left-3.5 bg-white px-1.5 text-[11px] font-bold text-brand-blue z-10 tracking-wide select-none">
+          Mobile Number <span className="text-red-500 font-bold">*</span>
+        </span>
+        <div
+          className={`flex items-center gap-2.5 px-3.5 py-2.5 sm:py-3 rounded-xl border bg-white transition-all ${
+            displayError
+              ? 'border-red-400 ring-2 ring-red-500/10'
+              : 'border-brand-blue/40 focus-within:border-brand-blue focus-within:ring-2 focus-within:ring-brand-blue/15'
+          }`}
+        >
+          <span className="text-xs font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">+91</span>
+          <input
+            type="tel"
+            maxLength={10}
+            value={phone}
+            onChange={(e) => {
+              const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+              setPhone(val);
+              setPhoneError('');
+              if (clearError) clearError();
+            }}
+            placeholder="9876543210"
+            className="w-full bg-transparent text-sm text-slate-800 outline-none placeholder:text-slate-300 font-semibold tracking-wider"
+            autoFocus
+          />
+        </div>
+      </div>
+
+      <button
+        type="submit"
+        disabled={loading || isSessionExpired}
+        className="w-full py-3 rounded-xl bg-gradient-to-r from-brand-blue to-brand-navy hover:from-[#153e74] hover:to-[#07162c] active:scale-[0.99] text-white text-xs font-black tracking-widest uppercase transition-all shadow-md shadow-brand-blue/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer mt-1"
+      >
+        {loading && <i className="fa-solid fa-circle-notch fa-spin text-xs" />}
+        <span>COMPLETE REGISTRATION</span>
+      </button>
+    </form>
+  );
+}
+
 // ─── MAIN AUTH MODALS WRAPPER (2-COLUMN DESIGN) ──────────────────────────────
 export default function AuthModals() {
-  const { showAuthModal, closeAuthModal, authModalMode, switchAuthMode, setVerifyToken } = useAuth();
+  const { user, isLoggedIn, showAuthModal, closeAuthModal, openAuthModal, authModalMode, switchAuthMode, setVerifyToken, logout, fetchMe } = useAuth();
+  const checkedPhoneForUserRef = useRef(null);
+
+  // Listen to auth:logout events from Axios interceptors
+  useEffect(() => {
+    const handleLogoutEvent = () => {
+      logout();
+    };
+    window.addEventListener('auth:logout', handleLogoutEvent);
+    return () => window.removeEventListener('auth:logout', handleLogoutEvent);
+  }, [logout]);
+
+  // Check if session is actually valid when prompt opens or on load
+  useEffect(() => {
+    let isCancelled = false;
+    const verifySession = async () => {
+      if (!isLoggedIn) return;
+      if (auth && typeof auth.authStateReady === 'function') {
+        await auth.authStateReady();
+      }
+      if (isCancelled) return;
+      if (!auth.currentUser) {
+        const token = localStorage.getItem('accessToken');
+        if (!token || isJwtExpired(token)) {
+          logout();
+        }
+      }
+    };
+    verifySession();
+    return () => {
+      isCancelled = true;
+    };
+  }, [isLoggedIn, logout]);
+
+  // If user is logged in, verify whether phone exists in MongoDB Atlas before prompting for mandatory phone
+  // Guarded to prevent repetitive /auth/me call loops
+  useEffect(() => {
+    let isCancelled = false;
+
+    if (!isLoggedIn || !user) {
+      checkedPhoneForUserRef.current = null;
+      return;
+    }
+
+    const hasLocalPhone = Boolean(user.phoneNumber || user.mobile || user.phone);
+    if (hasLocalPhone) {
+      if (showAuthModal && authModalMode === 'require-phone') {
+        closeAuthModal();
+      }
+      return;
+    }
+
+    const userId = user._id || user.uid || user.firebaseUid || user.email;
+    // Only check remote profile ONCE per logged-in user to avoid re-triggering fetchMe in a loop
+    if (checkedPhoneForUserRef.current === userId) {
+      if (!showAuthModal || authModalMode !== 'require-phone') {
+        openAuthModal('require-phone');
+      }
+      return;
+    }
+
+    checkedPhoneForUserRef.current = userId;
+
+    const verifyPhoneRequirement = async () => {
+      // If local cache lacks phone, check authoritative MongoDB Atlas profile once
+      try {
+        const freshUser = await fetchMe().unwrap();
+        if (isCancelled) return;
+
+        const hasRemotePhone = Boolean(freshUser?.phoneNumber || freshUser?.mobile || freshUser?.phone);
+        if (hasRemotePhone) {
+          if (showAuthModal && authModalMode === 'require-phone') {
+            closeAuthModal();
+          }
+          return;
+        }
+      } catch {
+        // Network or fetch failed, fallback to local check
+      }
+
+      if (!isCancelled) {
+        if (!showAuthModal || authModalMode !== 'require-phone') {
+          openAuthModal('require-phone');
+        }
+      }
+    };
+
+    verifyPhoneRequirement();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [isLoggedIn, user, showAuthModal, authModalMode, openAuthModal, closeAuthModal, fetchMe]);
 
   useEffect(() => {
     if (!showAuthModal) return;
     const handleKeyDown = (e) => {
-      if (e.key === 'Escape') closeAuthModal();
+      if (e.key === 'Escape') {
+        if (authModalMode === 'require-phone') {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Phone Number Required',
+            text: 'Mobile number is mandatory to complete your account registration.',
+            confirmButtonColor: '#003366',
+          });
+          return;
+        }
+        closeAuthModal();
+      }
     };
     window.addEventListener('keydown', handleKeyDown);
     document.body.style.overflow = 'hidden';
@@ -898,7 +1192,7 @@ export default function AuthModals() {
       window.removeEventListener('keydown', handleKeyDown);
       document.body.style.overflow = '';
     };
-  }, [showAuthModal, closeAuthModal]);
+  }, [showAuthModal, closeAuthModal, authModalMode]);
 
   if (!showAuthModal) return null;
 
@@ -906,44 +1200,50 @@ export default function AuthModals() {
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 md:p-6 bg-slate-900/60 backdrop-blur-md overflow-y-auto">
       {/* Outer Card: 2 Column Layout with Left Hero & Right Form */}
       <div
-        className="relative w-full max-w-4xl bg-white rounded-[2rem] shadow-[0_25px_70px_rgba(10,31,63,0.35)] overflow-hidden border border-brand-blue/10 grid grid-cols-1 md:grid-cols-12 min-h-[530px] max-h-[92vh] animate-in fade-in zoom-in-95"
+        className="relative w-full max-w-4xl bg-white rounded-[2rem] shadow-[0_25px_70px_rgba(10,31,63,0.35)] overflow-hidden border border-brand-blue/10 grid grid-cols-1 md:grid-cols-12 min-h-0 sm:min-h-[530px] max-h-[92vh] animate-in fade-in zoom-in-95"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top-Right Sleek Close Button */}
-        <button
-          type="button"
-          onClick={closeAuthModal}
-          className="absolute top-4 right-4 z-30 flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-white/90 text-slate-400 hover:text-brand-navy hover:bg-white border border-slate-200/80 backdrop-blur-md transition-all shadow-xs active:scale-95 cursor-pointer"
-          aria-label="Close modal"
-        >
-          <i className="fa-solid fa-xmark text-sm" />
-        </button>
+        {authModalMode !== 'require-phone' && (
+          <button
+            type="button"
+            onClick={closeAuthModal}
+            className="absolute top-4 right-4 z-30 flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-white/90 text-slate-400 hover:text-brand-navy hover:bg-white border border-slate-200/80 backdrop-blur-md transition-all shadow-xs active:scale-95 cursor-pointer"
+            aria-label="Close modal"
+          >
+            <i className="fa-solid fa-xmark text-sm" />
+          </button>
+        )}
 
         {/* ─── LEFT COLUMN: Brand Hero Banner with Official Logo ─── */}
-        <div className="md:col-span-5 relative hidden md:flex flex-col justify-between p-8 overflow-hidden bg-brand-navy text-white select-none">
+        <div className="md:col-span-5 relative hidden md:flex flex-col justify-between p-8 overflow-hidden bg-gradient-to-b from-[#d9ebfa] via-[#e8f2fb] to-[#cfe4f6] text-slate-900 select-none border-r border-sky-200/80">
+          {/* Ambient Soft Glow Lights */}
+          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-sky-300/35 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-10 left-10 w-64 h-64 bg-blue-200/40 rounded-full blur-3xl pointer-events-none" />
+
           {/* Background Luxury Architectural Image */}
           <img
             src={HERO_IMAGE}
             alt="OneVishwam Living"
-            className="absolute inset-0 w-full h-full object-cover object-center transform scale-105"
+            className="absolute inset-0 w-full h-full object-cover object-center opacity-30 select-none pointer-events-none"
             loading="eager"
           />
-          {/* Navy & Blue Gradients for Brand Consistency */}
-          <div className="absolute inset-0 bg-gradient-to-b from-[#0a1f3f]/90 via-[#0a1f3f]/60 to-[#0a1f3f]/95" />
-          <div className="absolute inset-0 bg-brand-blue/20" />
+          {/* Luminous Footer Blue Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-b from-[#d9ebfa]/80 via-[#e8f2fb]/70 to-[#cfe4f6]/80 pointer-events-none" />
+          <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[#cfe4f6] via-[#cfe4f6]/60 to-transparent pointer-events-none" />
 
           {/* Top Brand Logo & Tagline */}
           <div className="relative z-10 space-y-4 pt-1">
             {/* Official Logo in a translucent glass container */}
-            <div className="inline-flex items-center bg-white/95 backdrop-blur-md px-3.5 py-2 rounded-xl shadow-lg border border-white/20">
+            <div className="inline-flex items-center bg-white/95 backdrop-blur-md px-3.5 py-2 rounded-xl shadow-xs border border-sky-200/80">
               <img src={logo} alt="OneVishwam Logo" className="h-8 w-auto object-contain" />
             </div>
 
             <div className="space-y-1.5">
-              <h3 className="text-lg lg:text-xl font-bold text-white tracking-tight drop-shadow-sm">
+              <h3 className="text-lg lg:text-xl font-black text-slate-950 tracking-tight">
                 Unlock Your Next Chapter
               </h3>
-              <p className="text-xs text-slate-200 font-medium leading-relaxed max-w-xs drop-shadow-xs">
+              <p className="text-xs text-slate-600 font-semibold leading-relaxed max-w-xs">
                 Your all-in-one destination for verified Properties, Smart Finance, and Lifestyle Services.
               </p>
             </div>
@@ -951,15 +1251,15 @@ export default function AuthModals() {
 
           {/* Bottom Highlights Pill */}
           <div className="relative z-10">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3.5 py-1.5 text-[11px] font-semibold text-white border border-white/20 shadow-xs">
-              <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/90 backdrop-blur-md px-3.5 py-1.5 text-[11px] font-bold text-slate-800 border border-sky-200/90 shadow-2xs">
+              <span className="w-2 h-2 rounded-full bg-brand-blue animate-pulse" />
               <span>Properties • Finance • Marketplace</span>
             </div>
           </div>
         </div>
 
         {/* ─── RIGHT COLUMN: Form & Landmarks ─── */}
-        <div className="md:col-span-7 relative flex flex-col justify-between bg-white px-6 py-8 sm:px-10 sm:py-10 overflow-y-auto">
+        <div className="md:col-span-7 relative flex flex-col justify-between bg-white px-5 py-6 sm:px-10 sm:py-10 overflow-y-auto">
           {/* Top Flight Trail Curve */}
           <FlightTrail />
 
@@ -976,6 +1276,8 @@ export default function AuthModals() {
                   ? 'Welcome'
                   : authModalMode === 'register'
                   ? 'Register'
+                  : authModalMode === 'require-phone'
+                  ? 'One Last Step'
                   : authModalMode === 'forgot'
                   ? 'Reset Password'
                   : authModalMode === 'verify-otp'
@@ -989,6 +1291,8 @@ export default function AuthModals() {
                   ? 'Login with Email'
                   : authModalMode === 'register'
                   ? 'Join OneVishwam Today'
+                  : authModalMode === 'require-phone'
+                  ? 'Mobile Number Mandatory'
                   : 'Follow the steps to continue'}
               </p>
             </div>
@@ -998,6 +1302,8 @@ export default function AuthModals() {
               <LoginForm onSwitch={() => switchAuthMode('register')} onClose={closeAuthModal} />
             ) : authModalMode === 'register' ? (
               <RegisterForm onSwitch={() => switchAuthMode('login')} onClose={closeAuthModal} />
+            ) : authModalMode === 'require-phone' ? (
+              <RequirePhoneForm onClose={closeAuthModal} />
             ) : authModalMode === 'forgot' ? (
               <ForgotPasswordForm
                 onBack={() => switchAuthMode('login')}

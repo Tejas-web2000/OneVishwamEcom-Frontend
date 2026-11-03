@@ -1,25 +1,48 @@
 import React, { useMemo, useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import MasterDetailPage from '../../../components/common/templates/MasterDetailPage';
+import PageContainer from '../../../components/common/PageContainer';
+import { useBeddingById, useSimilarBedding } from './beddingHooks';
 
-export default function BeddingDetails({ item = null, similarItems = [] }) {
+export default function BeddingDetails({ item: directItem = null, similarItems: directSimilar = [] }) {
+  const params = useParams();
+  const navigate = useNavigate();
+  const id = params.id || directItem?._id || directItem?.id;
+
+  const { item: fetchedItem, loading, error } = useBeddingById(directItem ? null : id);
+  const { similar: fetchedSimilar } = useSimilarBedding(directItem ? null : id);
+
+  const rawItem = directItem || fetchedItem;
+  const similarItems = (directSimilar && directSimilar.length > 0) ? directSimilar : (fetchedSimilar || []);
+
   const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
 
   // Reset selected variant whenever item changes
   useEffect(() => {
     setSelectedVariantIndex(0);
-  }, [item?.id]);
+  }, [rawItem?._id || rawItem?.id]);
 
-  const variants = item?.variants || [];
+  const variants = rawItem?.variants || [];
   const currentVariant = variants[selectedVariantIndex] || variants[0] || null;
 
   // Dynamically update product data based on selected variant
   const displayedItem = useMemo(() => {
-    if (!item) return null;
-    if (!currentVariant || variants.length <= 1) return item;
+    if (!rawItem) return null;
+
+    const baseImages = Array.isArray(rawItem.images) && rawItem.images.length > 0 ? rawItem.images : (rawItem.image ? [rawItem.image] : []);
+
+    if (!currentVariant || variants.length <= 1) {
+      return {
+        ...rawItem,
+        id: rawItem._id || rawItem.id,
+        images: baseImages,
+        category: rawItem.subcategory || rawItem.category || 'Bedding & Comfort',
+      };
+    }
 
     // Enhanced keyAttributes reflecting chosen variant
     const keyAttributes = [
-      ...(item.keyAttributes || []).filter(
+      ...(rawItem.keyAttributes || []).filter(
         (a) => a.label !== 'Selected Size' && a.label !== 'Selected Size / Variant' && a.label !== 'Dimensions'
       ),
       {
@@ -56,18 +79,74 @@ export default function BeddingDetails({ item = null, similarItems = [] }) {
         icon: 'fa-tag',
         color: 'text-emerald-600 bg-emerald-50',
       },
-      ...(item.overviewHighlights || []).slice(0, 2),
+      ...(rawItem.overviewHighlights || []).slice(0, 2),
     ];
 
     return {
-      ...item,
+      ...rawItem,
+      id: rawItem._id || rawItem.id,
+      images: baseImages,
       price: currentVariant.price,
       priceSuffix: `(MRP ${currentVariant.mrp} · ${currentVariant.discount || '15% Off'})`,
       priceNote: `Selected Size: ${currentVariant.name} · Direct Manufacturer Warranty · Free Delivery`,
       keyAttributes,
       overviewHighlights,
+      category: rawItem.subcategory || rawItem.category || 'Bedding & Comfort',
     };
-  }, [item, currentVariant, variants.length]);
+  }, [rawItem, currentVariant, variants.length]);
+
+  // Loading Skeleton State
+  if (loading && !rawItem) {
+    return (
+      <PageContainer className="min-h-screen bg-[#f8fafc] py-8">
+        <div className="max-w-7xl mx-auto px-4 animate-pulse space-y-6">
+          <div className="h-6 w-48 bg-gray-200 rounded-md" />
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div className="lg:col-span-8 space-y-6">
+              <div className="h-[380px] bg-gray-200 rounded-2xl w-full" />
+              <div className="h-10 bg-gray-200 rounded-xl w-3/4" />
+              <div className="h-28 bg-gray-200 rounded-xl w-full" />
+            </div>
+            <div className="lg:col-span-4 space-y-4">
+              <div className="h-64 bg-gray-200 rounded-2xl w-full" />
+              <div className="h-48 bg-gray-200 rounded-2xl w-full" />
+            </div>
+          </div>
+        </div>
+      </PageContainer>
+    );
+  }
+
+  // Not Found State
+  if (!displayedItem) {
+    return (
+      <PageContainer className="min-h-screen bg-[#f8fafc] flex items-center justify-center py-16">
+        <div className="text-center max-w-md mx-auto p-8 bg-white rounded-2xl border border-gray-100 shadow-sm">
+          <div className="w-16 h-16 bg-blue-50 text-brand-blue rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+            <i className="fa-solid fa-bed" />
+          </div>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Mattress Not Found</h2>
+          <p className="text-sm text-gray-500 mb-6">
+            The bedding item you are looking for does not exist or may have been removed.
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              if (window.history.state?.idx > 0 || window.history.length > 1) {
+                navigate(-1);
+              } else {
+                navigate('/categories/bedding-comfort');
+              }
+            }}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-brand-blue text-white text-sm font-bold shadow-md hover:bg-blue-700 transition-all cursor-pointer"
+          >
+            <i className="fa-solid fa-arrow-left text-xs" />
+            <span>Back to Bedding Collection</span>
+          </button>
+        </div>
+      </PageContainer>
+    );
+  }
 
   // Header Dropdown for instant variant switching
   const headerVariantDropdown = variants.length > 1 && (
@@ -82,7 +161,7 @@ export default function BeddingDetails({ item = null, similarItems = [] }) {
         </label>
         {currentVariant && (
           <span className="text-[11px] font-extrabold text-emerald-700 bg-emerald-100/70 border border-emerald-300/80 px-2.5 py-0.5 rounded-full">
-            Offer: {currentVariant.price}
+            Verified Offer
           </span>
         )}
       </div>
@@ -96,7 +175,7 @@ export default function BeddingDetails({ item = null, similarItems = [] }) {
         >
           {variants.map((v, idx) => (
             <option key={idx} value={idx}>
-              {v.name} — {v.price} (MRP: {v.mrp})
+              {v.name}
             </option>
           ))}
         </select>
@@ -104,100 +183,31 @@ export default function BeddingDetails({ item = null, similarItems = [] }) {
           <i className="fa-solid fa-chevron-down text-xs" />
         </div>
       </div>
-
-      {currentVariant && (
-        <div className="flex flex-wrap items-center gap-2 pt-0.5 text-xs text-gray-500">
-          {currentVariant.dimension && (
-            <span className="inline-flex items-center gap-1 bg-white border border-gray-200 rounded-lg px-2.5 py-0.5 text-[11px] font-semibold text-gray-700">
-              <i className="fa-solid fa-ruler-combined text-brand-blue text-[10px]" />
-              {currentVariant.dimension}
-            </span>
-          )}
-          {currentVariant.thickness && (
-            <span className="inline-flex items-center gap-1 bg-white border border-gray-200 rounded-lg px-2.5 py-0.5 text-[11px] font-semibold text-gray-700">
-              <i className="fa-solid fa-layer-group text-emerald-600 text-[10px]" />
-              {currentVariant.thickness}
-            </span>
-          )}
-          <span className="inline-flex items-center gap-1 bg-white border border-gray-200 rounded-lg px-2.5 py-0.5 text-[11px] font-semibold text-gray-700">
-            <i className="fa-solid fa-percent text-indigo-600 text-[10px]" />
-            {currentVariant.discount || 'Special Discount'}
-          </span>
-        </div>
-      )}
     </div>
   );
 
-  // Dedicated Variant Lineup & Pricing Table Card
-  const variantDashboard = variants.length > 1 && currentVariant && (
-    <section className="rounded-3xl bg-white border border-gray-200/70 p-6 sm:p-8 shadow-xs space-y-6">
-      {/* Module Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-gray-100">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-blue-50 text-brand-blue flex items-center justify-center text-base">
-            <i className="fa-solid fa-tag" />
-          </div>
-          <div>
-            <h2 className="text-lg sm:text-xl font-bold text-brand-charcoal">
-              Available Sizes & Price Schedule
-            </h2>
-            <p className="text-xs text-gray-500">
-              Official Bedding Lineup & Size Configurations
-            </p>
-          </div>
-        </div>
-
-        {/* Dropdown Selector in Module */}
-        <div className="relative min-w-[260px] sm:w-auto">
-          <select
-            value={selectedVariantIndex}
-            onChange={(e) => setSelectedVariantIndex(Number(e.target.value))}
-            className="w-full appearance-none rounded-xl border border-gray-300 bg-gray-50/80 px-3.5 py-2 pr-9 text-xs font-bold text-brand-charcoal hover:bg-white focus:bg-white focus:border-brand-blue focus:outline-none focus:ring-2 focus:ring-brand-blue/20 transition-all cursor-pointer shadow-2xs"
-          >
-            {variants.map((v, idx) => (
-              <option key={idx} value={idx}>
-                {v.name} ({v.price})
-              </option>
-            ))}
-          </select>
-          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
-            <i className="fa-solid fa-chevron-down text-[10px]" />
-          </div>
-        </div>
-      </div>
-
-      {/* Selected Variant Highlight Card */}
-      <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+  // Variant Matrix & Size Comparison Table
+  const variantDashboard = variants.length > 1 && (
+    <section className="bg-white rounded-3xl border border-gray-200/80 p-5 sm:p-7 shadow-xs space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 pb-5">
         <div>
-          <span className="text-[10px] font-extrabold uppercase tracking-wider text-brand-blue">
-            Selected Size & Configuration
+          <span className="text-xs font-bold text-brand-blue uppercase tracking-wider">
+            Available Dimensions & Sizes
           </span>
-          <h3 className="text-base sm:text-lg font-black text-brand-charcoal mt-0.5">
-            {currentVariant.name}
+          <h3 className="text-lg sm:text-xl font-bold text-brand-charcoal mt-1">
+            Choose Your Mattress Size
           </h3>
-          <div className="flex flex-wrap items-center gap-2 mt-2">
-            {currentVariant.dimension && (
-              <span className="rounded-full bg-blue-100/70 text-blue-800 text-xs font-bold px-3 py-1">
-                Dimension: {currentVariant.dimension}
-              </span>
-            )}
-            {currentVariant.thickness && (
-              <span className="rounded-full bg-emerald-100/70 text-emerald-800 text-xs font-bold px-3 py-1">
-                Thickness: {currentVariant.thickness}
-              </span>
-            )}
-            <span className="rounded-full bg-slate-200 text-slate-800 text-xs font-bold px-3 py-1">
-              Direct Factory Warranty
-            </span>
-          </div>
+          <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
+            Includes free doorstep delivery, dedicated support, and official brand warranty.
+          </p>
         </div>
 
-        <div className="text-left sm:text-right">
-          <span className="text-xs font-semibold text-gray-500 line-through block">
-            MRP {currentVariant.mrp}
+        <div className="text-right shrink-0">
+          <span className="text-[11px] font-semibold text-gray-400 block uppercase">
+            Active Size: {currentVariant.name}
           </span>
-          <span className="text-2xl sm:text-3xl font-black text-brand-charcoal tracking-tight">
-            {currentVariant.price}
+          <span className="text-sm font-extrabold text-brand-blue block mt-1">
+            Price on Request
           </span>
           <span className="text-xs font-extrabold text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-md inline-block mt-1">
             {currentVariant.discount || 'Special Offer'}
@@ -209,7 +219,7 @@ export default function BeddingDetails({ item = null, similarItems = [] }) {
       <div className="space-y-3 pt-2">
         <h4 className="text-sm font-bold text-brand-charcoal flex items-center gap-2">
           <i className="fa-solid fa-list-check text-brand-blue" />
-          Compare All {variants.length} Sizes for {item.title}
+          Compare All {variants.length} Sizes for {displayedItem.title}
         </h4>
 
         <div className="overflow-x-auto rounded-2xl border border-gray-200">
@@ -219,8 +229,8 @@ export default function BeddingDetails({ item = null, similarItems = [] }) {
                 <th className="py-3 px-4">Size Option</th>
                 <th className="py-3 px-3">Dimensions</th>
                 <th className="py-3 px-3">Thickness / Fit</th>
-                <th className="py-3 px-3 text-gray-400">MRP</th>
-                <th className="py-3 px-4 text-brand-charcoal">Special Price</th>
+                <th className="py-3 px-3 text-gray-500">Warranty</th>
+                <th className="py-3 px-4 text-emerald-700">Availability</th>
                 <th className="py-3 px-3 text-right">Action</th>
               </tr>
             </thead>
@@ -252,8 +262,8 @@ export default function BeddingDetails({ item = null, similarItems = [] }) {
                     <td className="py-3 px-3">
                       <span className="text-gray-600">{v.thickness || '—'}</span>
                     </td>
-                    <td className="py-3 px-3 line-through text-gray-400">{v.mrp}</td>
-                    <td className="py-3 px-4 font-extrabold text-brand-charcoal">{v.price}</td>
+                    <td className="py-3 px-3 text-gray-600">{v.warranty || 'Brand Warranty'}</td>
+                    <td className="py-3 px-4 font-extrabold text-emerald-700">In Stock</td>
                     <td className="py-3 px-3 text-right">
                       {isSelected ? (
                         <span className="rounded-lg bg-emerald-600 text-white px-2.5 py-1 text-[10px] font-extrabold inline-flex items-center gap-1 shadow-2xs">
@@ -281,8 +291,8 @@ export default function BeddingDetails({ item = null, similarItems = [] }) {
   return (
     <MasterDetailPage
       item={displayedItem}
-      categoryName="Bedding & Comfort"
-      categoryLink="/our-services/bedding-comfort"
+      categoryName="Comfort"
+      categoryLink="/categories/bedding-comfort"
       similarItems={similarItems}
       itemLinkPrefix="/bedding/"
       bentoTitle="Product Key Specifications & Mattress Dimensions"

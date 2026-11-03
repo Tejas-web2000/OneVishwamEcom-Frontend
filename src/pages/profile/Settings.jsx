@@ -111,7 +111,7 @@ function ProfileSettings() {
         icon: 'success',
         title: 'Reset Link Sent!',
         text: `We emailed a password reset link to ${user.email}.`,
-        confirmButtonColor: '#0a1f3f',
+        confirmButtonColor: '#1a4b8c',
       });
     } catch (err) {
       Swal.fire({
@@ -167,11 +167,11 @@ function ProfileSettings() {
       <div className="max-w-5xl mx-auto space-y-6">
 
         {/* ── CATCHY TOP BANNER ── */}
-        <div className="bg-gradient-to-r from-brand-navy via-slate-900 to-brand-blue rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
-          <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-brand-blue/20 blur-2xl pointer-events-none" />
+        <div className="relative bg-gradient-to-b from-[#d9ebfa] via-[#e8f2fb] to-[#cfe4f6] rounded-3xl p-6 sm:p-8 text-slate-900 shadow-sm border border-sky-200/90 overflow-hidden">
+          <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-sky-300/40 blur-2xl pointer-events-none" />
           <div className="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-5 text-center sm:text-left">
             <div className="flex items-center gap-4 flex-col sm:flex-row">
-              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-tr from-brand-blue via-blue-500 to-indigo-500 text-white flex items-center justify-center font-black text-2xl sm:text-3xl shadow-lg ring-4 ring-white/20 shrink-0">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-tr from-brand-blue via-blue-500 to-indigo-500 text-white flex items-center justify-center font-black text-2xl sm:text-3xl shadow-md ring-4 ring-white/80 shrink-0">
                 {user.avatar ? (
                   <img src={user.avatar} alt="Avatar" className="w-full h-full object-cover rounded-2xl" />
                 ) : (
@@ -180,25 +180,25 @@ function ProfileSettings() {
               </div>
               <div>
                 <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-1">
-                  <h1 className="text-xl sm:text-2xl font-black tracking-tight">
+                  <h1 className="text-xl sm:text-2xl font-black text-slate-950 tracking-tight">
                     {user.name || user.fullName || 'My Profile'}
                   </h1>
-                  <span className="rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30 text-[11px] font-bold px-3 py-0.5">
+                  <span className="rounded-full bg-white/90 text-brand-blue border border-sky-300/80 text-[11px] font-bold px-3 py-0.5 shadow-2xs">
                     {role}
                   </span>
                 </div>
-                <p className="text-xs sm:text-sm text-slate-300 flex items-center justify-center sm:justify-start gap-2">
+                <p className="text-xs sm:text-sm text-slate-600 font-semibold flex items-center justify-center sm:justify-start gap-2">
                   <i className="fa-solid fa-envelope text-brand-blue" />
                   <span>{user.email}</span>
                   <span>•</span>
-                  <i className="fa-solid fa-location-dot text-amber-400" />
+                  <i className="fa-solid fa-location-dot text-brand-blue" />
                   <span>{city}</span>
                 </p>
               </div>
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 shadow-2xs">
+              <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-emerald-600/15 text-emerald-800 border border-emerald-500/30 shadow-2xs">
                 <i className="fa-solid fa-shield-check" />
                 Verified Account
               </span>
