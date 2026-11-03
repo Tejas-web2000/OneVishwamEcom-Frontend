@@ -34,13 +34,12 @@ describe('ProductCard Component', () => {
     render(<ProductCard {...defaultProps} />);
     
     expect(screen.getByText('Test Product')).toBeInTheDocument();
-    expect(screen.getByText('₹10,000')).toBeInTheDocument();
-    expect(screen.getByText('/ month')).toBeInTheDocument();
     expect(screen.getByText('Mumbai · 400001')).toBeInTheDocument();
     expect(screen.getByText('New')).toBeInTheDocument();
     expect(screen.getByText('Sale')).toBeInTheDocument();
     expect(screen.getByText('Featured')).toBeInTheDocument();
     expect(screen.getByText('Electronics')).toBeInTheDocument();
+    expect(screen.getByText('Are You Interested?')).toBeInTheDocument();
     
     const image = screen.getByAltText('Test Alt');
     expect(image).toBeInTheDocument();

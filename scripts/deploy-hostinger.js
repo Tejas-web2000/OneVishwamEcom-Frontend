@@ -382,7 +382,7 @@ async function deploy() {
     spinner.start('Compressing production build into high-speed deployment archive...');
     const { execSync } = await import('child_process');
     try { fs.unlinkSync(zipPath); } catch {}
-    execSync(`zip -r -q "${zipPath}" .`, { cwd: distDir });
+    if (process.platform === "win32") { execSync(`tar.exe -a -c -f "${zipPath}" *`, { cwd: distDir }); } else { execSync(`zip -r -q "${zipPath}" .`, { cwd: distDir }); }
     const zipStats = fs.statSync(zipPath);
     spinner.succeed(`Build archive compressed (${C.brightCyan}${formatBytes(zipStats.size)}${C.reset} from ${formatBytes(totalBytes)})`);
 
@@ -481,3 +481,5 @@ if ($zip->open($zipFile) === TRUE) {
 }
 
 deploy();
+
+

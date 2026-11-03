@@ -520,9 +520,8 @@ export default function HeroSection() {
             return (
               <div
                 key={slide.id}
-                className={`absolute inset-0 overflow-hidden transition-opacity duration-1000 ease-in-out ${
-                  active ? 'opacity-100' : 'opacity-0'
-                }`}
+                className={`absolute inset-0 overflow-hidden transition-opacity duration-1000 ease-in-out ${active ? 'opacity-100' : 'opacity-0'
+                  }`}
               >
                 <img
                   src={slide.image}
@@ -613,11 +612,10 @@ export default function HeroSection() {
                           key={tab.id}
                           type="button"
                           onClick={() => setActiveCategory(tab.id)}
-                          className={`w-full inline-flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3 h-10 sm:h-11 text-[11px] sm:text-xs md:text-sm rounded-xl font-bold transition-all cursor-pointer truncate ${
-                            isActive
-                              ? 'bg-white text-slate-950 font-black shadow-md border-2 border-slate-400 z-20 ring-2 ring-slate-400/20'
-                              : 'bg-slate-200/90 hover:bg-white text-slate-800 hover:text-slate-950 font-extrabold border-2 border-slate-300 shadow-xs'
-                          }`}
+                          className={`w-full inline-flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3 h-10 sm:h-11 text-[11px] sm:text-xs md:text-sm rounded-xl font-bold transition-all cursor-pointer truncate ${isActive
+                            ? 'bg-white text-slate-950 font-black shadow-md border-2 border-slate-400 z-20 ring-2 ring-slate-400/20'
+                            : 'bg-slate-200/90 hover:bg-white text-slate-800 hover:text-slate-950 font-extrabold border-2 border-slate-300 shadow-xs'
+                            }`}
                         >
                           <i className={`${tab.icon} text-[10px] sm:text-xs shrink-0 ${isActive ? 'text-[#eb4e52]' : 'text-slate-600'}`} />
                           <span className="hidden sm:inline truncate">{tab.label}</span>
@@ -783,9 +781,8 @@ export default function HeroSection() {
                 key={s.id}
                 type="button"
                 onClick={() => setCurrent(i)}
-                className={`h-1.5 rounded-full transition-all duration-300 ${
-                  i === current ? 'w-5 bg-white' : 'w-1.5 bg-slate-500 hover:bg-slate-400'
-                }`}
+                className={`h-1.5 rounded-full transition-all duration-300 ${i === current ? 'w-5 bg-white' : 'w-1.5 bg-slate-500 hover:bg-slate-400'
+                  }`}
                 aria-label={`Slide ${i + 1}`}
               />
             ))}
