@@ -57,31 +57,7 @@ export default function DetailHeader({
         </p>
       )}
 
-      {/* Price row */}
-      {price !== undefined && price !== null && (
-        <div className="flex flex-wrap items-baseline gap-3 pt-1">
-          <span className={`text-3xl sm:text-4xl font-bold ${accentColor}`}>
-            {withRupeeSymbol(price)}
-            {priceSuffix && (
-              <span className="text-sm font-normal text-gray-500 ml-1">
-                {priceSuffix}
-              </span>
-            )}
-          </span>
 
-          {originalPrice && (
-            <span className="text-base text-gray-400 line-through">
-              {withRupeeSymbol(originalPrice)}
-            </span>
-          )}
-
-          {discount > 0 && (
-            <span className="rounded-md bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-700">
-              {discount}% OFF
-            </span>
-          )}
-        </div>
-      )}
 
       {/* Tag Chips */}
       {Array.isArray(tags) && tags.length > 0 && (

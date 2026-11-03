@@ -4,10 +4,9 @@ import { useAuth } from '../../../../store/authSlice';
 import { formatINR, withRupeeSymbol } from '../priceUtils';
 import { normalizeListing } from './normalizeListing';
 import SoldOutRibbon from '../../../../components/ui/SoldOutRibbon';
+import { ONEVISHWAM_VERIFIED_IMAGE, isPlaceholderImage } from '../../../../constants/fallbackImage';
 
-const FALLBACK_IMG = 'data:image/svg+xml,' + encodeURIComponent(
-  `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" fill="none"><rect width="400" height="300" fill="#f3f4f6"/><path fill="#9ca3af" d="M160 130h80v-10l-40-40-40 40v10zm-20 50h120v-60l-40-40-80 80v20z"/></svg>`
-);
+const FALLBACK_IMG = ONEVISHWAM_VERIFIED_IMAGE;
 
 const EMPTY_ARRAY = [];
 
@@ -82,8 +81,8 @@ export const ListingCard = React.memo(function ListingCard({
   const isInactive = isInactiveProp ?? normalized?.isInactive ?? false;
   const availabilityStatus = availabilityStatusProp ?? normalized?.availabilityStatus ?? 'available';
 
-  const cardLink = link || normalized?.link || '#';
-  const cardImage = image || normalized?.image;
+  const rawImage = image || normalized?.image;
+  const cardImage = isPlaceholderImage(rawImage) ? ONEVISHWAM_VERIFIED_IMAGE : (rawImage || ONEVISHWAM_VERIFIED_IMAGE);
   const cardAlt = alt || title || normalized?.title || '';
   const cardOverline = overline !== undefined ? overline : normalized?.overline;
   const cardTitle = title || normalized?.title || '';
@@ -213,35 +212,15 @@ export const ListingCard = React.memo(function ListingCard({
         </div>
 
         {/* Price Row */}
-        <div className="min-h-[1.5rem] my-1">
-          {isSoldOut ? (
-            <p className="text-sm font-bold text-red-600">Sold Out</p>
-          ) : isInactive ? (
-            <p className="text-sm font-bold text-amber-600">Inactive</p>
-          ) : priceOverride ? (
-            <div className="mt-0.5">{priceOverride}</div>
-          ) : cardPriceType === 'on-request' ? (
-            <p className="text-sm font-bold text-brand-gold">Price on Request</p>
-          ) : (
-            cardPrice != null && cardPrice !== '' && (
-              <p className="text-base font-extrabold text-brand-blue">
-                {typeof cardPrice === 'number' || (typeof cardPrice === 'string' && /^\d/.test(cardPrice.replace(/[₹,\s]/g, '')))
-                  ? formatINR(cardPrice)
-                  : withRupeeSymbol(cardPrice)}
-                {cardPriceSuffix && (
-                  <span className="text-xs font-normal text-gray-400 ml-1">
-                    {cardPriceSuffix}
-                  </span>
-                )}
-                {cardPriceType === 'negotiable' && (
-                  <span className="ml-1.5 text-[9px] font-bold text-brand-gold bg-brand-gold/10 px-2 py-0.5 rounded-full">
-                    Negotiable
-                  </span>
-                )}
-              </p>
-            )
-          )}
-        </div>
+        {(isSoldOut || isInactive) && (
+          <div className="min-h-[1.5rem] my-1">
+            {isSoldOut ? (
+              <p className="text-sm font-bold text-red-600">Sold Out</p>
+            ) : (
+              <p className="text-sm font-bold text-amber-600">Inactive</p>
+            )}
+          </div>
+        )}
 
         {/* Location Row */}
         {cardLocation && !isSoldOut && !isInactive && (
@@ -249,7 +228,7 @@ export const ListingCard = React.memo(function ListingCard({
             <i className="fa-solid fa-location-dot text-brand-blue text-[11px] shrink-0" />
             <span className="truncate font-medium">
               {cardLocation}
-              {cardPincode ? ` · ${cardPincode}` : ''}
+              {cardPincode && !/\b\d{6}\b/.test(cardLocation) && !String(cardLocation).includes(cardPincode) ? ` · ${cardPincode}` : ''}
             </span>
           </div>
         )}
@@ -259,8 +238,8 @@ export const ListingCard = React.memo(function ListingCard({
           <div className="mt-2 flex flex-wrap items-center gap-1 text-[11px] text-gray-600 overflow-hidden max-h-[3rem]">
             {cardTags.map((t, i) => (
               t && (
-                <span key={i} className="bg-gray-100/80 rounded-md px-2 py-0.5 font-medium whitespace-nowrap">
-                  {t}
+                <span key={i} className="bg-gray-100/80 rounded-md px-2 py-0.5 font-medium max-w-full inline-flex items-center truncate">
+                  <span className="truncate">{t}</span>
                 </span>
               )
             ))}
@@ -273,10 +252,21 @@ export const ListingCard = React.memo(function ListingCard({
         {/* Details button pinned to bottom */}
         {showButton !== false && !isSoldOut && !isInactive && (
           <div className="mt-auto pt-3">
-            <div className="w-full rounded-xl bg-gray-50 border border-gray-100 group-hover:bg-brand-blue group-hover:text-white group-hover:border-brand-blue text-brand-charcoal text-center text-xs font-bold py-2.5 transition-all duration-200 flex items-center justify-center gap-1.5 shadow-xs">
-              <span>{buttonText}</span>
-              <i className="fa-solid fa-arrow-right text-[10px] group-hover:translate-x-0.5 transition-transform" />
-            </div>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                window.dispatchEvent(
+                  new CustomEvent('onevishwam:open_enquiry_modal', {
+                    detail: { title: cardTitle || title || 'Product Enquiry' },
+                  })
+                );
+              }}
+              className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 px-4 py-2.5 text-xs sm:text-sm font-extrabold transition-all shadow-xs hover:shadow-md cursor-pointer active:scale-[0.98]"
+            >
+              <i className="fa-solid fa-handshake-angle text-xs text-slate-950" />
+              <span>Are You Interested?</span>
+            </button>
           </div>
         )}
 

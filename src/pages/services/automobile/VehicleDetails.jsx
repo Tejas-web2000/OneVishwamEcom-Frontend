@@ -107,7 +107,7 @@ export default function VehicleDetails() {
 
   // Header Dropdown Component
   const headerVariantDropdown = variants.length > 0 && (
-    <div className="bg-slate-50/90 border border-slate-200/90 rounded-2xl p-3.5 sm:p-4 shadow-2xs space-y-2.5 max-w-2xl">
+    <div className="bg-slate-50/90 border border-slate-200/90 rounded-2xl p-3.5 sm:p-4 shadow-2xs space-y-2.5 w-full">
       <div className="flex items-center justify-between gap-2">
         <label htmlFor="variant-select-header" className="text-[11px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
           <i className="fa-solid fa-car-side text-brand-blue" />
@@ -217,10 +217,10 @@ export default function VehicleDetails() {
               })
             );
           }}
-          className="rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 px-5 py-2.5 text-xs font-extrabold transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
+          className="rounded-xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 px-5 py-2.5 text-xs font-extrabold transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
         >
-          <i className="fa-solid fa-envelope" />
-          <span>Contact Us</span>
+          <i className="fa-solid fa-handshake-angle text-xs" />
+          <span>Are You Interested?</span>
         </button>
       </div>
 
@@ -364,8 +364,8 @@ export default function VehicleDetails() {
   return (
     <MasterDetailPage
       item={displayedVehicle}
-      categoryName="Automobiles & Vehicles"
-      categoryLink="/automobile"
+      categoryName="Automobiles"
+      categoryLink="/categories/automobile"
       similarItems={mappedSimilar}
       itemLinkPrefix="/vehicle/"
       loading={loading}

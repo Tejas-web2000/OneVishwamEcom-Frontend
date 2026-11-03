@@ -38,19 +38,25 @@ export default function useCachedData(
     let cancelled = false;
 
     const record = cache.get(namespace, key);
+    const isFresh = record && cache.isFresh(record, ttl);
 
     // Show cached data immediately to avoid blank screen or flicker
     if (record) {
       setData(record.data);
       setError(null);
+      // If cached data is completely fresh and not forced, reuse it with zero network requests
+      if (isFresh && force === 0) {
+        setLoading(false);
+        return undefined;
+      }
     } else {
       setLoading(true);
       setError(null);
     }
 
-    // Always fetch fresh data from API on mount / refresh (SWR pattern)
+    // Fetch from API only when cache is stale, missing, or explicitly forced via retry()
     cache
-      .fetch(namespace, key, () => fetcherRef.current(), { force: true, ttl })
+      .fetch(namespace, key, () => fetcherRef.current(), { force: force > 0, ttl })
       .then(({ data: fresh }) => {
         if (cancelled) return;
         setData(fresh);

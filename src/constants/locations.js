@@ -8,7 +8,34 @@ export const cities = {
       'BTM Layout', 'Banashankari', 'Malleshwaram', 'Rajajinagar',
       'Hebbal',
     ],
-  }
+  },
+  chennai: {
+    label: 'Chennai',
+    areas: [
+      'Anna Nagar', 'T. Nagar', 'Adyar', 'Velachery',
+      'OMR', 'Guindy', 'Alwarpet', 'Mylapore', 'Besant Nagar',
+    ],
+  },
+  mysuru: {
+    label: 'Mysuru',
+    areas: [
+      'Gokulam', 'Jayalakshmipuram', 'Kuvempunagar', 'Vijayanagar',
+      'Saraswathipuram', 'Hebbal Mysuru', 'Yadavagiri',
+    ],
+  },
+  hyderabad: {
+    label: 'Hyderabad',
+    areas: [
+      'Hitec City', 'Gachibowli', 'Banjara Hills', 'Jubilee Hills',
+      'Kondapur', 'Madhapur', 'Kukatpally',
+    ],
+  },
+  mumbai: {
+    label: 'Mumbai',
+    areas: [
+      'Bandra', 'Andheri', 'Juhu', 'Powai', 'Worli', 'Thane', 'Navi Mumbai',
+    ],
+  },
 };
 
 export const defaultCity = 'bengaluru';

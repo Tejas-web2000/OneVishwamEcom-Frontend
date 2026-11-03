@@ -1,184 +1,82 @@
-import React, { useState, useMemo } from 'react';
-import MarketplaceCategoryGallery from '../../../components/common/templates/MarketplaceCategoryGallery';
-import CategoryListingCard from '../../../components/common/templates/CategoryListingCard';
+import React from 'react';
+import { UniversalCategoryGallery } from '../../../components/common/templates';
+import { useBedding } from './beddingHooks';
 
 const FILTER_GROUPS = [
   {
-    id: 'categories',
-    title: 'Bedding & Comfort Type',
+    id: 'subcategory',
+    title: 'Collection & Mattress Type',
+    field: (item) => item.subcategory || item.category,
     options: [
-      'Orthopedic Mattresses',
-      'Natural Latex Mattresses',
-      'Reversible Mattresses',
-      'Luxury Bedding & Linen',
-      'Orthopedic Pillows & Cushions',
+      'Peps Affordable Luxury',
+      'The Restonic American Comfort',
+      'Peps Elite Comfort',
+      'Italiano Luxury Collection',
+      'Peps Orthopaedic Mattress',
+      'Peps Hypoallergenic Mattress',
+      'Pillows & Rest Cushions',
+      'Blankets & Comforters',
+      'Mattress Protectors & Sheets',
     ],
     defaultOpen: true,
   },
   {
-    id: 'brands',
+    id: 'brand',
     title: 'Brand',
-    options: ['SleepyCat', 'Sunday Rest', 'Wakefit', 'Portico New York', 'The White Willow'],
+    field: 'brand',
+    options: ['Peps', 'Peps Italiano', 'Restonic by Peps'],
     defaultOpen: true,
   },
   {
-    id: 'sizes',
-    title: 'Mattress & Bed Size',
-    options: ['King Size (78x72)', 'Queen Size (78x60)', 'Pillows & Linen'],
+    id: 'condition',
+    title: 'Condition & Warranty',
+    field: 'condition',
+    options: ['new', 'Brand New Sealed', 'Direct Factory Warranty'],
     defaultOpen: false,
   },
 ];
 
 const RANGE_FILTERS = [
   {
-    id: 'budget',
-    title: 'Price Range (₹)',
+    id: 'price',
+    title: 'Budget (₹)',
+    field: 'numericPrice',
     min: 0,
-    max: 60000,
-    step: 1000,
-    maxLabel: '₹ 60 K+',
+    max: 200000,
+    step: 2000,
+    maxLabel: '₹ 2 L+',
     unitLabel: '₹',
     defaultOpen: true,
   },
 ];
 
-function parseNumericPrice(str) {
-  if (!str) return 0;
-  const cleaned = String(str).replace(/[^\d.]/g, '');
-  const num = parseFloat(cleaned);
-  if (isNaN(num)) return 0;
-  return num;
-}
-
-export default function BeddingGallery({ items = [] }) {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [activeFilters, setActiveFilters] = useState({
-    budgetMin: '',
-    budgetMax: '',
-    categories: [],
-    brands: [],
-    sizes: [],
-  });
-
-  const handleFilterChange = (key, value) => {
-    setActiveFilters((prev) => ({ ...prev, [key]: value }));
-  };
-
-  const handleResetFilters = () => {
-    setActiveFilters({
-      budgetMin: '',
-      budgetMax: '',
-      categories: [],
-      brands: [],
-      sizes: [],
-    });
-    setSearchTerm('');
-  };
-
-  const activeChips = useMemo(() => {
-    const chips = [];
-    if (activeFilters.budgetMin) {
-      chips.push({ key: 'budgetMin', label: `Min ₹${Number(activeFilters.budgetMin).toLocaleString('en-IN')}` });
-    }
-    if (activeFilters.budgetMax) {
-      chips.push({ key: 'budgetMax', label: `Max ₹${Number(activeFilters.budgetMax).toLocaleString('en-IN')}` });
-    }
-    (activeFilters.categories || []).forEach((c) => {
-      chips.push({ key: 'categories', label: c, value: c });
-    });
-    (activeFilters.brands || []).forEach((b) => {
-      chips.push({ key: 'brands', label: b, value: b });
-    });
-    (activeFilters.sizes || []).forEach((s) => {
-      chips.push({ key: 'sizes', label: s, value: s });
-    });
-    return chips;
-  }, [activeFilters]);
-
-  const handleRemoveChip = (chip) => {
-    if (chip.key === 'budgetMin' || chip.key === 'budgetMax') {
-      handleFilterChange(chip.key, '');
-    } else {
-      const currentList = activeFilters[chip.key] || [];
-      handleFilterChange(chip.key, currentList.filter((x) => x !== chip.value));
-    }
-  };
-
-  const filteredItems = useMemo(() => {
-    const list = Array.isArray(items) ? items : [];
-    return list.filter((item) => {
-      // Search
-      if (searchTerm.trim()) {
-        const q = searchTerm.toLowerCase().trim();
-        const matchTitle = (item.title || '').toLowerCase().includes(q);
-        const matchBrand = (item.brand || '').toLowerCase().includes(q);
-        const matchModel = (item.model || '').toLowerCase().includes(q);
-        const matchCategory = (item.category || '').toLowerCase().includes(q);
-        const matchLocation = (item.location || '').toLowerCase().includes(q);
-        if (!matchTitle && !matchBrand && !matchModel && !matchCategory && !matchLocation) {
-          return false;
-        }
-      }
-
-      // Budget
-      const numPrice = parseNumericPrice(item.price);
-      if (activeFilters.budgetMin && numPrice < Number(activeFilters.budgetMin)) {
-        return false;
-      }
-      if (activeFilters.budgetMax && numPrice > Number(activeFilters.budgetMax)) {
-        return false;
-      }
-
-      // Categories
-      if (activeFilters.categories.length > 0) {
-        if (!item.category || !activeFilters.categories.includes(item.category)) {
-          return false;
-        }
-      }
-
-      // Brands
-      if (activeFilters.brands.length > 0) {
-        if (!item.brand || !activeFilters.brands.includes(item.brand)) {
-          return false;
-        }
-      }
-
-      return true;
-    });
-  }, [items, searchTerm, activeFilters]);
-
+export default function BeddingGallery({ items = null }) {
   return (
-    <MarketplaceCategoryGallery
+    <UniversalCategoryGallery
       categoryTitle="Explore Verified Bedding & Sleep Comfort"
-      categorySubtitle="Discover orthopedic memory foam mattresses, 100% natural organic latex, Egyptian cotton bedsheets, and cervical contour pillows."
-      breadcrumbCategory="Bedding & Comfort"
-      items={filteredItems}
+      categorySubtitle="Browse certified orthopedic memory foam mattresses, luxury pocketed spring collections, and sleep accessories with direct factory warranties."
+      breadcrumb="Bedding & Comfort"
+      searchPlaceholder="Search mattresses by collection, brand, model, or locality (e.g. Bonnell Comfort, Restonic, Indiranagar)..."
+      useItems={items ? null : useBedding}
+      items={items}
+      mapping={{
+        id: (item) => item._id || item.id,
+        title: (item) => item.title || item.name || `${item.brand || ''} ${item.model || ''}`.trim(),
+        image: (item) => (Array.isArray(item.images) && item.images.length > 0 ? item.images[0] : (item.image || '')),
+        price: (item) => item.price,
+        priceSuffix: (item) => item.priceSuffix || 'Incl. GST',
+        location: (item) => item.location || item.area || item.city || 'Bengaluru',
+        pincode: (item) => item.pincode,
+        overline: (item) => item.subcategory || item.category || 'Bedding & Sleep Comfort',
+        badges: (item) => (item.statusBadges?.length > 0 ? item.statusBadges : [
+          item.warranty ? { label: item.warranty, className: 'bg-emerald-600 text-white' } : null,
+        ].filter(Boolean)),
+        pills: (item) => (item.cardPills?.length > 0 ? item.cardPills : [item.brand, item.model, item.condition].filter(Boolean)),
+        highlightBanner: (item) => item.highlightBanner,
+        detailUrl: (item) => `/bedding/${item._id || item.id}`,
+      }}
       filterGroups={FILTER_GROUPS}
       rangeFilters={RANGE_FILTERS}
-      activeFilters={activeFilters}
-      onFilterChange={handleFilterChange}
-      activeChips={activeChips}
-      onRemoveChip={handleRemoveChip}
-      onResetFilters={handleResetFilters}
-      searchTerm={searchTerm}
-      onSearchChange={setSearchTerm}
-      searchPlaceholder="Search mattresses by brand, material, size, or locality (e.g. Orthopedic King, Latex, Indiranagar)..."
-      customCardRenderer={(item) => (
-        <CategoryListingCard
-          key={item.id || item._id}
-          item={item}
-          link={`/bedding/${item.id || item._id}`}
-          title={item.title}
-          price={item.price}
-          priceSuffix={item.priceSuffix}
-          location={item.location}
-          pincode={item.pincode}
-          statusBadges={item.statusBadges}
-          keyAttributes={item.cardPills || item.keyAttributes}
-          highlightBanner={item.highlightBanner}
-        />
-      )}
     />
   );
 }
-

@@ -46,6 +46,7 @@ export {
   compareByPrice,
   compareByDate,
   applySort,
+  isInHouseOrCeoListing,
 } from './sortBy';
 
 export {

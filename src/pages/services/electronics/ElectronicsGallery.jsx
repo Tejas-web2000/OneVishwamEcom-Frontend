@@ -1,190 +1,79 @@
-import React, { useState, useMemo } from 'react';
-import MarketplaceCategoryGallery from '../../../components/common/templates/MarketplaceCategoryGallery';
-import CategoryListingCard from '../../../components/common/templates/CategoryListingCard';
-import { matchesSearch } from '../../../utils/searchUtils';
+import React from 'react';
+import { UniversalCategoryGallery } from '../../../components/common/templates';
+import { useElectronics } from './electronicsHooks';
 
 const FILTER_GROUPS = [
   {
-    id: 'categories',
+    id: 'subcategory',
     title: 'Category & Device Type',
+    field: 'subcategory',
     options: [
       'Television & Home Audio',
-      'Laptops & Computers',
-      'Smartphones & Tablets',
+      'Air Conditioners & Cooling',
       'Home & Kitchen Appliances',
-      'Audio & Wearables',
+      'Home Appliances',
+      'Smartphones & Tablets',
+      'Laptops & Computers',
     ],
     defaultOpen: true,
   },
   {
-    id: 'brands',
+    id: 'brand',
     title: 'Brand',
-    options: ['Sony', 'Apple', 'Samsung', 'LG'],
+    field: 'brand',
+    options: ['Sony', 'LG', 'Samsung', 'Apple', 'Godrej', 'Haier', 'Lloyd', 'Whirlpool', 'Xiaomi', 'IFB'],
     defaultOpen: true,
   },
   {
-    id: 'conditions',
+    id: 'condition',
     title: 'Condition & Warranty',
-    options: ['Brand New Sealed', 'Official Brand Warranty', 'EMI Available'],
+    field: 'condition',
+    options: ['Brand New Sealed', 'Certified Refurbished', 'Used - Like New'],
     defaultOpen: false,
   },
 ];
 
 const RANGE_FILTERS = [
   {
-    id: 'budget',
+    id: 'price',
     title: 'Budget (₹)',
+    field: 'numericPrice',
     min: 0,
-    max: 400000,
+    max: 300000,
     step: 5000,
-    maxLabel: '₹ 4 L+',
+    maxLabel: '₹ 3 L+',
     unitLabel: '₹',
     defaultOpen: true,
   },
 ];
 
-function parseNumericPrice(str) {
-  if (!str) return 0;
-  const cleaned = String(str).replace(/[^\d.]/g, '');
-  const num = parseFloat(cleaned);
-  if (isNaN(num)) return 0;
-  if (/cr/i.test(str)) return num * 10000000;
-  if (/lakh|lac|l/i.test(str)) return num * 100000;
-  return num;
-}
-
-export default function ElectronicsGallery({ items = [] }) {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [activeFilters, setActiveFilters] = useState({
-    budgetMin: '',
-    budgetMax: '',
-    categories: [],
-    brands: [],
-    conditions: [],
-  });
-
-  const handleFilterChange = (key, value) => {
-    setActiveFilters((prev) => ({ ...prev, [key]: value }));
-  };
-
-  const handleResetFilters = () => {
-    setActiveFilters({
-      budgetMin: '',
-      budgetMax: '',
-      categories: [],
-      brands: [],
-      conditions: [],
-    });
-    setSearchTerm('');
-  };
-
-  const activeChips = useMemo(() => {
-    const chips = [];
-    if (activeFilters.budgetMin) {
-      chips.push({ key: 'budgetMin', label: `Min ₹${Number(activeFilters.budgetMin).toLocaleString('en-IN')}` });
-    }
-    if (activeFilters.budgetMax) {
-      chips.push({ key: 'budgetMax', label: `Max ₹${Number(activeFilters.budgetMax).toLocaleString('en-IN')}` });
-    }
-    (activeFilters.categories || []).forEach((c) => {
-      chips.push({ key: 'categories', label: c, value: c });
-    });
-    (activeFilters.brands || []).forEach((b) => {
-      chips.push({ key: 'brands', label: b, value: b });
-    });
-    (activeFilters.conditions || []).forEach((cond) => {
-      chips.push({ key: 'conditions', label: cond, value: cond });
-    });
-    return chips;
-  }, [activeFilters]);
-
-  const handleRemoveChip = (chip) => {
-    if (chip.key === 'budgetMin' || chip.key === 'budgetMax') {
-      handleFilterChange(chip.key, '');
-    } else {
-      const currentList = activeFilters[chip.key] || [];
-      handleFilterChange(chip.key, currentList.filter((x) => x !== chip.value));
-    }
-  };
-
-  const filteredItems = useMemo(() => {
-    return items.filter((item) => {
-      // Search
-      if (searchTerm.trim()) {
-        if (!matchesSearch(
-          searchTerm,
-          item.title,
-          item.brand,
-          item.model,
-          item.category,
-          item.location,
-          item.subtitle,
-          item.specs,
-          item.description
-        )) {
-          return false;
-        }
-      }
-
-      // Budget
-      const numPrice = parseNumericPrice(item.price);
-      if (activeFilters.budgetMin && numPrice < Number(activeFilters.budgetMin)) {
-        return false;
-      }
-      if (activeFilters.budgetMax && numPrice > Number(activeFilters.budgetMax)) {
-        return false;
-      }
-
-      // Categories
-      if (activeFilters.categories.length > 0) {
-        if (!item.category || !activeFilters.categories.includes(item.category)) {
-          return false;
-        }
-      }
-
-      // Brands
-      if (activeFilters.brands.length > 0) {
-        if (!item.brand || !activeFilters.brands.includes(item.brand)) {
-          return false;
-        }
-      }
-
-      return true;
-    });
-  }, [searchTerm, activeFilters]);
-
+export default function ElectronicsGallery({ items = null }) {
   return (
-    <MarketplaceCategoryGallery
+    <UniversalCategoryGallery
       categoryTitle="Explore Verified Consumer Electronics & Appliances"
       categorySubtitle="Browse certified OLED televisions, premium laptops, flagship smartphones, and smart home appliances with official brand warranties."
-      breadcrumbCategory="Consumer Electronics"
-      items={filteredItems}
+      breadcrumb="Consumer Electronics"
+      searchPlaceholder="Search electronics by brand, model, category, or locality (e.g. Sony OLED, MacBook M3, Indiranagar)..."
+      useItems={items ? null : useElectronics}
+      items={items}
+      mapping={{
+        id: (item) => item._id || item.id,
+        title: (item) => item.title || item.name || `${item.brand || ''} ${item.model || ''}`.trim(),
+        image: (item) => (Array.isArray(item.images) && item.images.length > 0 ? item.images[0] : (item.image || '')),
+        price: (item) => item.price,
+        priceSuffix: (item) => item.priceSuffix || 'Incl. GST',
+        location: (item) => item.location || item.area || item.city || 'Bengaluru',
+        pincode: (item) => item.pincode,
+        overline: (item) => item.subcategory || item.category || 'Consumer Electronics',
+        badges: (item) => (item.statusBadges?.length > 0 ? item.statusBadges : [
+          item.warranty ? { label: item.warranty, className: 'bg-emerald-600 text-white' } : null,
+        ].filter(Boolean)),
+        pills: (item) => (item.cardPills?.length > 0 ? item.cardPills : [item.brand, item.model, item.condition].filter(Boolean)),
+        highlightBanner: (item) => item.highlightBanner,
+        detailUrl: (item) => `/electronics/${item._id || item.id}`,
+      }}
       filterGroups={FILTER_GROUPS}
       rangeFilters={RANGE_FILTERS}
-      activeFilters={activeFilters}
-      onFilterChange={handleFilterChange}
-      activeChips={activeChips}
-      onRemoveChip={handleRemoveChip}
-      onResetFilters={handleResetFilters}
-      searchTerm={searchTerm}
-      onSearchChange={setSearchTerm}
-      searchPlaceholder="Search electronics by brand, model, category, or locality (e.g. Sony OLED, MacBook M3, Indiranagar)..."
-      customCardRenderer={(item) => (
-        <CategoryListingCard
-          key={item.id}
-          item={item}
-          link={`/electronics/${item.id}`}
-          title={item.title}
-          price={item.price}
-          priceSuffix={item.priceSuffix}
-          location={item.location}
-          pincode={item.pincode}
-          statusBadges={item.statusBadges}
-          keyAttributes={item.cardPills}
-          highlightBanner={item.highlightBanner}
-        />
-      )}
     />
   );
 }
-

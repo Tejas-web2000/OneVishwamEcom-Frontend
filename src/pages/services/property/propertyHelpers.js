@@ -1,4 +1,5 @@
 import { getNumericPrice } from '../../../utils/formatters';
+import { ONEVISHWAM_VERIFIED_IMAGE, isPlaceholderImage } from '../../../constants/fallbackImage';
 
 export { getNumericPrice };
 
@@ -51,18 +52,36 @@ export function parseAreaRange(areaOrProperty) {
   }
 
   if (!str) return { min: 0, max: 0 };
-  const lower = str.toLowerCase();
-  
-  let unitMultiplier = 1;
-  if (lower.includes('acre')) unitMultiplier = 43560;
-  else if (lower.includes('gunta')) unitMultiplier = 1089;
-  else if (lower.includes('cent')) unitMultiplier = 435.6;
-  else if (lower.includes('ground')) unitMultiplier = 2400;
-  else if (lower.includes('sq.yd') || lower.includes('sq yd') || lower.includes('sqyd') || lower.includes('yard')) {
-    unitMultiplier = 9;
+
+  // Guard against non-area descriptors (e.g., "40 Units", "Sites 01–55", "262 Plots", "Residential")
+  const hasAreaKeyword = /(?:sq\.?\s*ft|sqft|sq\s*yd|sqyd|acre|acres|gunta|guntas|cent|ground|\bft\b|x|\*|×)/i.test(str);
+  if (!hasAreaKeyword) {
+    return { min: 0, max: 0 };
   }
 
-  // Check for dimension patterns like "30x40", "30*40", "30×40", "40 X 60"
+  // 1. Prioritize explicit Sq.Ft range (e.g. "1588-1668 Sq.ft", "1,200 - 2,400 Sq.ft")
+  const sqftRangeMatch = str.match(/([\d,.]+)\s*(?:-|–|to)\s*([\d,.]+)\s*(?:sq\.?\s*ft|sqft)/i);
+  if (sqftRangeMatch) {
+    const minVal = parseFloat(sqftRangeMatch[1].replace(/,/g, ''));
+    const maxVal = parseFloat(sqftRangeMatch[2].replace(/,/g, ''));
+    if (!isNaN(minVal) && !isNaN(maxVal) && minVal > 0 && maxVal > 0) {
+      return {
+        min: Math.round(Math.min(minVal, maxVal)),
+        max: Math.round(Math.max(minVal, maxVal)),
+      };
+    }
+  }
+
+  // 2. Explicit Sq.Ft single value (e.g. "8,024 Sq.ft", "1,450 Sq.ft · 9 Units")
+  const sqftSingleMatch = str.match(/([\d,.]+)\s*(?:sq\.?\s*ft|sqft)/i);
+  if (sqftSingleMatch) {
+    const val = parseFloat(sqftSingleMatch[1].replace(/,/g, ''));
+    if (!isNaN(val) && val > 0) {
+      return { min: Math.round(val), max: Math.round(val) };
+    }
+  }
+
+  // 3. Dimension patterns like "30x40", "30*40", "30×40", "40 X 60"
   const dimMatches = [...str.matchAll(/(\d+)\s*(?:x|\*|×|X)\s*(\d+)/g)];
   if (dimMatches.length > 0) {
     const dimAreas = dimMatches.map((m) => parseInt(m[1], 10) * parseInt(m[2], 10));
@@ -71,16 +90,20 @@ export function parseAreaRange(areaOrProperty) {
     return { min: minDim, max: maxDim };
   }
 
-  // Check for range e.g. "1200 - 2400 Sq.ft" or "1200 to 2400"
-  const rangeMatch = str.match(/([\d,.]+)\s*(?:-|–|to)\s*([\d,.]+)/);
-  if (rangeMatch) {
-    const minVal = parseFloat(rangeMatch[1].replace(/,/g, '')) * unitMultiplier;
-    const maxVal = parseFloat(rangeMatch[2].replace(/,/g, '')) * unitMultiplier;
-    if (!isNaN(minVal) && !isNaN(maxVal) && minVal > 0 && maxVal > 0) {
-      return {
-        min: Math.round(Math.min(minVal, maxVal)),
-        max: Math.round(Math.max(minVal, maxVal)),
-      };
+  // 4. Other units: Acres, Guntas, Cents, Grounds, Sq.Yards
+  const acreMatch = str.match(/([\d,.]+)\s*(?:acre|acres)/i);
+  if (acreMatch) {
+    const val = parseFloat(acreMatch[1].replace(/,/g, '')) * 43560;
+    if (!isNaN(val) && val > 0) {
+      return { min: Math.round(val), max: Math.round(val) };
+    }
+  }
+
+  const guntaMatch = str.match(/([\d,.]+)\s*(?:gunta|guntas)/i);
+  if (guntaMatch) {
+    const val = parseFloat(guntaMatch[1].replace(/,/g, '')) * 1089;
+    if (!isNaN(val) && val > 0) {
+      return { min: Math.round(val), max: Math.round(val) };
     }
   }
 
@@ -273,7 +296,7 @@ export function matchesSizeRange(property, sizeMin, sizeMax) {
  */
 export function getPropertiesSizeBounds(properties = []) {
   if (!Array.isArray(properties) || properties.length === 0) {
-    return { min: 600, max: 10000 };
+    return { min: 600, max: 15000 };
   }
 
   let min = Infinity;
@@ -285,31 +308,55 @@ export function getPropertiesSizeBounds(properties = []) {
     const low = pMin || pMax;
     const high = pMax || pMin;
 
-    if (low > 0 && low < min) {
+    // Minimum size must be >= 100 sq.ft to avoid stray site/unit numbers
+    if (low >= 100 && low < min) {
       min = low;
     }
-    if (high > 0 && high > max) {
+    // Track residential/commercial unit upper bounds, capping wholesale development land parcels
+    if (high >= 100 && high <= 20000 && high > max) {
       max = high;
     }
   });
 
-  if (min === Infinity || max === -Infinity) {
-    return { min: 600, max: 10000 };
-  }
+  if (min === Infinity) min = 600;
+  if (max === -Infinity || max < min) max = 15000;
 
-  if (min >= max) {
-    return { min: Math.max(0, min - 100), max: min + 500 };
-  }
+  const cleanMin = Math.max(100, Math.floor(min / 50) * 50);
+  const cleanMax = Math.max(cleanMin + 500, Math.ceil(max / 500) * 500);
 
-  return { min, max };
+  return { min: cleanMin, max: cleanMax };
+}
+
+/**
+ * Dynamically calculates size preset ranges derived from the available properties list from DB.
+ * The lowest preset starts with the least size as min, and presets cover standard real estate brackets up to the upper bound.
+ *
+ * @param {Array} properties - Available property listings from DB
+ * @param {{ min: number, max: number }} [sizeBounds] - Min and max size bounds
+ * @returns {Array<{ label: string, min: number, max: number }>}
+ */
+export function getDynamicSizePresets(properties = [], sizeBounds) {
+  const bounds = sizeBounds || getPropertiesSizeBounds(properties);
+  const minSize = Math.max(100, bounds?.min || 600);
+  const maxSize = Math.max(minSize + 500, bounds?.max || 15000);
+
+  // Standard clean real-estate brackets based on actual Bangalore listings
+  const presets = [
+    { label: `${minSize.toLocaleString('en-IN')} – 1,200 sq.ft`, min: minSize, max: 1200 },
+    { label: '1,200 – 2,400 sq.ft', min: 1200, max: 2400 },
+    { label: '2,400 – 5,000 sq.ft', min: 2400, max: 5000 },
+    { label: `5,000 – ${maxSize.toLocaleString('en-IN')} sq.ft`, min: 5000, max: maxSize },
+  ].filter((p) => p.min < p.max && p.min <= maxSize);
+
+  return presets;
 }
 
 export function getPropertyType(property) {
   if (!property) return 'Flats';
 
   const type = String(
-    property.subcategory ||
     property.propertyType ||
+    property.subcategory ||
     property.category ||
     ''
   ).toLowerCase().trim();
@@ -368,20 +415,20 @@ export function getPropertyType(property) {
 }
 
 export function getPropertyTypeLabel(property) {
-  if (!property) return 'Flat';
-  const sub = String(property.propertyType || property.subcategory || property.subCategory || property.category || '').toLowerCase();
-  if (sub.includes('plot') || sub.includes('site') || sub.includes('land')) return 'Plot';
-  if (sub.includes('villa')) return 'Villa';
-  if (sub.includes('flat') || sub.includes('apartment') || sub.includes('house') || !sub) return 'Flat';
-  return property.propertyType || property.subcategory || property.subCategory || 'Flat';
+  if (!property) return 'Plot';
+  const sub = String(property.propertyType || property.subcategory || property.category || '').toLowerCase();
+  if (sub.includes('plot') || sub.includes('site') || sub.includes('layout') || sub.includes('plat')) return 'Plot';
+  if (sub.includes('land') && !sub.includes('agri')) return 'Land';
+  if (sub.includes('flat') || sub.includes('apartment') || sub.includes('villa')) return 'Flat';
+  if (sub.includes('independent') || sub.includes('house')) return 'Independent House';
+  return property.propertyType || 'Plot';
 }
 
 export function isPlotOrLand(property) {
   if (!property) return false;
   const sub = String(
-    property.subcategory ||
-    property.subCategory ||
     property.propertyType ||
+    property.subcategory ||
     property.category ||
     property.buildingType ||
     property.subtitle ||
@@ -449,10 +496,9 @@ export function getBuildingType(property) {
   if (!property) return 'Residential';
 
   const type = String(
-    property.buildingType ||
     property.propertyType ||
     property.subcategory ||
-    property.subCategory ||
+    property.buildingType ||
     property.category ||
     ''
   ).toLowerCase().trim();
@@ -495,7 +541,7 @@ export function isCornerProperty(property) {
     if (hasCornerAmenity) return true;
   }
 
-  const fullText = `${property.title || ''} ${property.subtitle || ''} ${property.description || ''} ${property.subcategory || ''}`.toLowerCase();
+  const fullText = `${property.title || ''} ${property.subtitle || ''} ${property.description || ''} ${property.propertyType || property.subcategory || ''}`.toLowerCase();
   return (
     fullText.includes('corner plot') ||
     fullText.includes('corner site') ||
@@ -527,7 +573,33 @@ export function getDetailTags(property) {
     tags.push(property.bhk);
   }
 
-  if (property.area) tags.push(property.area);
+  if (property.area) {
+    const rawArea = String(property.area).trim();
+    const parts = rawArea.split(/\s*[\u00b7\u2022\u2219\u2027\u25cf\u25cb\u2043\u2218•·|]\s*/).map((p) => p.trim()).filter(Boolean);
+    if (parts.length > 1) {
+      const sqftParts = parts.filter((p) => /sq\.?ft|sqft/i.test(p));
+      const unitParts = parts.filter((p) => /\b\d+\s*units?\b/i.test(p));
+      const acreParts = parts.filter((p) => /acres?|guntas?/i.test(p));
+      const otherParts = parts.filter(
+        (p) => !sqftParts.includes(p) && !unitParts.includes(p) && !acreParts.includes(p)
+      );
+
+      const ordered = [
+        ...sqftParts,
+        ...acreParts,
+        ...unitParts,
+        ...otherParts,
+      ];
+      tags.push(...ordered);
+    } else {
+      tags.push(rawArea);
+    }
+  }
+
+  const rawUnits = property.totalUnits || property.details?.totalUnits || '';
+  if (rawUnits && !tags.some((t) => /\bunits?\b/i.test(t))) {
+    tags.push(`${String(rawUnits).replace(/units?/i, '').trim()} Units`);
+  }
   const facingVal = property.facing;
   if (facingVal && facingVal !== 'N/A' && facingVal !== 'NA') {
     tags.push(`Door Facing: ${facingVal}`);
@@ -547,7 +619,7 @@ export function getCardType(property) {
   if (!property) return 'Flat';
 
   const type = getPropertyType(property);
-  const sub = String(property.subcategory || property.subCategory || property.category || property.title || '').toLowerCase();
+  const sub = String(property.propertyType || property.subcategory || property.category || property.title || '').toLowerCase();
   const subtitle = String(property.subtitle || '').toLowerCase();
 
   if (sub.includes('agricultural') || sub.includes('raw land') || subtitle.includes('agricultural')) {
@@ -649,69 +721,107 @@ export function getListedWithinDays(property) {
  * Used to show properties-with-images first across listings.
  */
 export function hasPropertyImages(property) {
-  return Array.isArray(property.images) &&
-    property.images.some((src) => src && !src.startsWith('data:'));
+  if (!property) return false;
+  const p = property.raw || property;
+  if (Array.isArray(p.images) && p.images.some((src) => src && !isPlaceholderImage(src) && src !== ONEVISHWAM_VERIFIED_IMAGE)) {
+    return true;
+  }
+  if (Array.isArray(property.images) && property.images.some((src) => src && !isPlaceholderImage(src) && src !== ONEVISHWAM_VERIFIED_IMAGE)) {
+    return true;
+  }
+  const candidate = p.coverImage || p.image || p.imageUrl || property.image || property.coverImage;
+  if (candidate && typeof candidate === 'string' && !isPlaceholderImage(candidate) && candidate !== ONEVISHWAM_VERIFIED_IMAGE) {
+    return true;
+  }
+  return false;
 }
 
 /**
  * Best available cover image: prefers a real property/building image,
- * falls back to the first entry, then to a legacy single `image` field.
+ * falls back to the official ONEVISHWAM_VERIFIED_IMAGE when no real image exists.
  */
 export function getPropertyCoverImage(property) {
+  if (!property) return ONEVISHWAM_VERIFIED_IMAGE;
   if (Array.isArray(property.images)) {
-    return property.images.find((src) => src && !src.startsWith('data:')) ||
-      property.images[0] || '';
+    const realImg = property.images.find((src) => src && !isPlaceholderImage(src));
+    if (realImg) return realImg;
   }
-  return property.image || '';
+  if (property.image && !isPlaceholderImage(property.image)) {
+    return property.image;
+  }
+  return ONEVISHWAM_VERIFIED_IMAGE;
 }
 
-export const PRIORITY_TITLES = [
-  'VEDANT SURAKSHA',
-  'Whispering Waves',
-  'Bren Annanta',
-  'Bren Avaana',
-];
+export const PRIORITY_TITLES = [];
 
 /**
- * Returns true if property subtitle or vendor is 'Onevishwam'.
- * Gives top priority placement in listings.
+ * Computes a priority score for a property:
+ * 3 = Direct In-House OneVishwam Project (vendorName is OneVishwam or origin === 'in_house_project')
+ * 0 = Standard partner listing
+ */
+export function getPriorityScore(property) {
+  if (!property) return 0;
+  const p = property.raw || property;
+
+  const vendor = String(p.vendorName || p.vendor || '').trim().toLowerCase().replace(/\s+/g, '');
+
+  // Dynamic priority: if vendorName is OneVishwam, prioritize at top (Score = 3)
+  if (vendor.includes('onevishwam')) return 3;
+
+  // If vendorName belongs to an external partner, do not mark as in-house project
+  const isExternalVendor = vendor.length > 0 && !vendor.includes('onevishwam');
+  if (!isExternalVendor) {
+    if (p.priority && Number(p.priority) > 0) return 3;
+    if (p.isPriority === true) return 3;
+    if (
+      p.origin === 'in_house_project' ||
+      p.origin === 'in_house' ||
+      p.details?.origin === 'in_house_project' ||
+      p.details?.origin === 'in_house'
+    ) return 3;
+    if (p.isInHouse === true || p.inHouse === true || p.is_inhouse === true) return 3;
+    if (p.postedBy === 'In-House' || p.postedBy === 'OneVishwam' || p.postedBy === 'One Vishwam') return 3;
+  }
+
+  return 0;
+}
+
+/**
+ * Returns true if property is associated with Onevishwam or listed in-house.
  */
 export function isOneVishwamProperty(property) {
-  if (!property) return false;
-  const sub = String(property.subtitle || '').trim().toLowerCase().replace(/\s+/g, '');
-  const vendor = String(property.vendorName || '').trim().toLowerCase().replace(/\s+/g, '');
-  return sub === 'onevishwam' || vendor === 'onevishwam';
+  return getPriorityScore(property) >= 2;
 }
 
 /**
  * Priority sort helper:
- * 1. Specific in-house projects ('VEDANT SURAKSHA', 'Whispering Waves', 'Bren Annanta', 'Bren Avaana')
- * 2. Any other Onevishwam properties
- * 3. Has images priority
- * 4. Recent ID (b.id - a.id)
+ * 1. Highest priority score (in-house projects and OneVishwam vendor/partner listings at the top)
+ * 2. User sortBy option (price-low, price-high) or default (images first + newest date/id)
  */
-export function sortPropertiesWithPriority(list = []) {
+export function sortPropertiesWithPriority(list = [], sortBy = 'latest') {
   return [...list].sort((a, b) => {
-    const aTitle = String(a.title || a.name || '').trim().toLowerCase();
-    const bTitle = String(b.title || b.name || '').trim().toLowerCase();
-    const aPriIndex = PRIORITY_TITLES.findIndex((t) => t.toLowerCase() === aTitle);
-    const bPriIndex = PRIORITY_TITLES.findIndex((t) => t.toLowerCase() === bTitle);
+    const aScore = getPriorityScore(a);
+    const bScore = getPriorityScore(b);
 
-    if (aPriIndex !== -1 && bPriIndex !== -1) {
-      return aPriIndex - bPriIndex;
+    if (aScore !== bScore) {
+      return bScore - aScore; // Priority in-house listings always at the top
     }
-    if (aPriIndex !== -1) return -1;
-    if (bPriIndex !== -1) return 1;
 
-    const aOv = isOneVishwamProperty(a) ? 1 : 0;
-    const bOv = isOneVishwamProperty(b) ? 1 : 0;
-    if (aOv !== bOv) return bOv - aOv;
-
+    // Properties that have real images are shown priority
     const aImg = hasPropertyImages(a) ? 1 : 0;
     const bImg = hasPropertyImages(b) ? 1 : 0;
     if (aImg !== bImg) return bImg - aImg;
 
-    return (b.id || 0) - (a.id || 0);
+    if (sortBy === 'price-low') {
+      return getTotalPropertyPrice(a) - getTotalPropertyPrice(b);
+    }
+    if (sortBy === 'price-high') {
+      return getTotalPropertyPrice(b) - getTotalPropertyPrice(a);
+    }
+
+    const bDate = new Date(b.createdAt || 0).getTime() || (typeof b.id === 'number' ? b.id : 0);
+    const aDate = new Date(a.createdAt || 0).getTime() || (typeof a.id === 'number' ? a.id : 0);
+    return bDate - aDate;
   });
 }
 
@@ -735,8 +845,10 @@ export const BBMP_ZONE_NAMES = [
  */
 export function getBangaloreZone(item) {
   if (!item) return 'South';
+  const resolvedLoc = resolvePropertyLocality(item);
   const str = String(
     (item.locality || '') + ' ' +
+    resolvedLoc + ' ' +
     (item.location || '') + ' ' +
     (item.address || '') + ' ' +
     (item.title || '')
@@ -860,3 +972,123 @@ export function getBangaloreZone(item) {
   const fallbacks = ['South', 'Bommanahalli', 'RR Nagara', 'Dasarahalli', 'Byatarayanapura', 'Mahadevapura', 'West', 'East'];
   return fallbacks[idNum % fallbacks.length];
 }
+
+/**
+ * Resolves a property's authentic locality.
+ * Falls back to extracting well-known Bangalore neighborhoods from title/project/vendor
+ * if the listing has an empty locality or generic city address.
+ */
+export function resolvePropertyLocality(property) {
+  if (!property) return '';
+  const direct = (property.locality || property.details?.locality || property.details?.area || '').trim();
+  if (direct && direct.toLowerCase() !== 'bangalore' && direct.toLowerCase() !== 'bengaluru') {
+    return direct;
+  }
+
+  const title = String(property.title || property.name || property.details?.propertyName || '').toLowerCase();
+  const sub = String(property.subtitle || property.vendorName || '').toLowerCase();
+  const desc = String(property.description || '').toLowerCase();
+  const combined = `${title} ${sub} ${desc}`;
+
+  if (combined.includes('nelamangala') || combined.includes('bmrda')) return 'Nelamangala';
+  if (combined.includes('kempegowda layout') || combined.includes('nada prabhu') || combined.includes('bda')) return 'Nada Prabhu Kempegowda Layout';
+  if (combined.includes('kanakapura') || combined.includes('annanta') || combined.includes('avaana') || combined.includes('oraiyan') || combined.includes('harmony')) return 'Kanakapura Road';
+  if (combined.includes('begur') || combined.includes('bbmp enclave') || combined.includes('sp prime') || combined.includes('sp grand') || combined.includes('bbmp residential plot')) return 'Begur';
+  if (combined.includes('electronic city') || combined.includes('e-city') || combined.includes('showroom') || combined.includes('commercial space') || combined.includes('commercial plot')) return 'Electronic City';
+  if (combined.includes('sarjapur') || combined.includes('sylvan woods')) return 'Sarjapur Road';
+  if (combined.includes('whitefield') || combined.includes('fortuna') || combined.includes('vinra')) return 'Whitefield';
+  if (combined.includes('devanahalli') || combined.includes('airport') || combined.includes('artemis') || combined.includes('navakruthi')) return 'Devanahalli';
+  if (combined.includes('yelahanka') || combined.includes('employee association')) return 'Yelahanka';
+  if (combined.includes('thanisandra') || combined.includes('skysisira') || combined.includes('manyata')) return 'Thanisandra';
+  if (combined.includes('kengeri') || combined.includes('rr mathrushree') || combined.includes('samyak') || combined.includes('kns sampada')) return 'Kengeri';
+  if (combined.includes('bidadi') || combined.includes('vaibhav garden') || combined.includes('rr bhoo')) return 'Bidadi';
+  if (combined.includes('dobbaspet') || combined.includes('dhabaspet') || combined.includes('kiadb') || combined.includes('dtcp') || combined.includes('sp industrial')) return 'Dobbaspet';
+  if (combined.includes('gottigere') || combined.includes('vedanth') || combined.includes('suraksha') || combined.includes('bannerghatta')) return 'Gottigere';
+  if (combined.includes('jigani') || combined.includes('the clan') || combined.includes('anekal')) return 'Jigani';
+  if (combined.includes('doddaballapur') || combined.includes('slice of heaven')) return 'Doddaballapur Road';
+  if (combined.includes('mysore road') || combined.includes('panchamuki') || combined.includes('golden city') || combined.includes('nirvana')) return 'Mysore Road';
+  if (combined.includes('varthur') || combined.includes('aquapolis')) return 'Varthur';
+  if (combined.includes('hoskote') || combined.includes('nexon')) return 'Hoskote';
+  if (combined.includes('dommasandra') || combined.includes('nambiar')) return 'Dommasandra';
+  if (combined.includes('chikkathirupathi') || combined.includes('alora')) return 'Chikkathirupathi';
+  if (combined.includes('kaiwara') || combined.includes('chikkaballapura')) return 'Chikkaballapura';
+
+  return '';
+}
+
+/**
+ * Formats a comprehensive, human-readable address for a property.
+ * Fetches and unifies locality, landmark, address, city, state, and pincode
+ * rather than displaying a generic bare city string.
+ */
+export function formatPropertyAddress(property) {
+  if (!property) return '';
+
+  const address = (
+    property.address ||
+    property.location ||
+    property.details?.address ||
+    property.details?.location ||
+    ''
+  ).trim();
+
+  const locality = resolvePropertyLocality(property);
+  const landmark = (property.landmark || property.details?.landmark || '').trim();
+  const rawCity = (property.city || property.details?.city || '').trim();
+  // Detect numeric-only city values (e.g. pincode "123453" entered in city field) and treat as Bangalore
+  const isNumericCity = /^\d+$/.test(rawCity);
+  const city = rawCity && !isNumericCity
+    ? (rawCity.toLowerCase() === 'bengaluru' ? 'Bangalore' : rawCity.charAt(0).toUpperCase() + rawCity.slice(1).toLowerCase())
+    : 'Bangalore';
+  const pincode = (property.pincode || property.details?.pincode || '').trim();
+  const state = (property.state || property.details?.state || '').trim();
+
+  const cleanAddr = address.toLowerCase();
+  const isAddressJustCity = !address || cleanAddr === 'bangalore' || cleanAddr === 'bengaluru' || cleanAddr === city.toLowerCase() || isNumericCity;
+
+  const parts = [];
+
+  if (locality) {
+    parts.push(locality);
+  }
+
+  if (address && !isAddressJustCity) {
+    if (!locality || !address.toLowerCase().includes(locality.toLowerCase())) {
+      parts.push(address);
+    } else {
+      parts[0] = address;
+    }
+  } else {
+    if (landmark) parts.push(`Near ${landmark}`);
+    parts.push(city);
+  }
+
+  if (parts.length === 1 && !parts[0].toLowerCase().includes('bangalore') && !parts[0].toLowerCase().includes('bengaluru')) {
+    parts.push(city);
+  }
+
+  // If pincode is present and address does NOT already contain a pincode, append it
+  const addressAlreadyHasPincode = hasPincode(address) || parts.some((p) => hasPincode(p));
+  if (!addressAlreadyHasPincode && pincode && !parts.some((p) => String(p).includes(pincode))) {
+    parts.push(pincode);
+  }
+
+  const result = parts.filter(Boolean).join(', ');
+  if (result) return result;
+
+  return state ? `${city}, ${state}` : city;
+}
+
+/**
+ * Detects if a string or property address already contains a 6-digit postal pincode.
+ */
+export function hasPincode(target) {
+  if (!target) return false;
+  if (typeof target === 'string') {
+    return /\b\d{6}\b/.test(target);
+  }
+  const addr = String(target.address || target.location || target.formattedAddress || target.details?.address || '');
+  const pin = String(target.pincode || target.details?.pincode || '');
+  return /\b\d{6}\b/.test(addr) || (Boolean(pin) && addr.includes(pin));
+}
+

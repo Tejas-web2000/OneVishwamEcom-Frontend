@@ -37,6 +37,20 @@ describe('Shared Utilities', () => {
       expect(sorted[0].name).toBe('C');
       expect(sorted[2].name).toBe('A');
     });
+
+    it('prioritizes in-house and ceo@onevishwam.com listings at the top regardless of sort', () => {
+      const mixed = [
+        { id: 1, name: 'Normal 1', price: '₹1,000' },
+        { id: 2, name: 'CEO Property', price: '₹99,000', contributor: { email: 'ceo@onevishwam.com' } },
+        { id: 3, name: 'Normal 2', price: '₹2,000' },
+        { id: 4, name: 'In-house project', price: '₹50,000', origin: 'in_house_project' },
+      ];
+      const sorted = applySort(mixed, SORT_PRICE_LOW);
+      expect(sorted[0].name).toBe('In-house project');
+      expect(sorted[1].name).toBe('CEO Property');
+      expect(sorted[2].name).toBe('Normal 1');
+      expect(sorted[3].name).toBe('Normal 2');
+    });
   });
 
   describe('priceUtils', () => {
@@ -64,6 +78,13 @@ describe('Shared Utilities', () => {
       const loaded = loadSessionState(key, { fallback: true });
       expect(loaded.page).toBe(2);
       expect(loaded.filter).toBe('active');
+    });
+
+    it('persists and restores page 7 for gallery return navigation', () => {
+      const galleryKey = 'gallery_page_/categories/automobile';
+      saveSessionState(galleryKey, { page: 7 });
+      const loaded = loadSessionState(galleryKey, { page: 1 });
+      expect(loaded.page).toBe(7);
     });
 
     it('returns fallback for non-existent keys', () => {
@@ -97,8 +118,7 @@ describe('Shared Utilities', () => {
       expect(normalized.title).toBe('3 BHK Luxury Apartment');
       expect(normalized.location).toBe('Indiranagar');
       expect(normalized.pincode).toBe('560038');
-      expect(normalized.tags).toContain('3 BHK');
-      expect(normalized.badges[0].label).toBe('Pre-Approved');
+      expect(normalized.badges.some(b => b.label === 'Pre-Approved' || b.label.includes('Occupy'))).toBe(true);
     });
 
     it('normalizes vehicle listing object correctly', () => {

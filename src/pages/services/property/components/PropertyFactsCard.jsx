@@ -4,7 +4,7 @@ export default function PropertyFactsCard({ property }) {
   if (!property) return null;
 
   const facts = [
-    { label: 'Subcategory', value: property.subcategoryNormalized || property.subcategory || property.subCategory },
+    { label: 'Property Type', value: property.propertyType || property.subcategory },
     { label: 'Area', value: property.area },
     { label: 'Size', value: property.sizeRange },
     { label: 'Bedrooms', value: property.bhk },
@@ -15,7 +15,7 @@ export default function PropertyFactsCard({ property }) {
     { label: 'Floor', value: property.floor },
     { label: 'Total Floors', value: property.totalFloors },
     { label: 'Property Age', value: property.propertyAge || property.age },
-    { label: 'Possession', value: property.possession || property.possessionStatus || property.details?.possessionStatus || property.details?.possession || (property.status === 'available' ? 'Ready to Occupy' : property.status) },
+    { label: 'Possession', value: property.possessionStatus || property.details?.possessionStatus || property.possession || (property.status === 'available' ? 'Ready to Occupy' : property.status) },
     { label: 'Gated Community', value: property.gatedCommunity ? 'Yes' : 'No' },
     { label: 'Parking', value: property.parking },
     { label: 'Water Source', value: property.waterSource },

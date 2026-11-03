@@ -37,13 +37,13 @@ export default function VerticalRibbonBar() {
   };
 
   return (
-    <div className="w-full bg-slate-900 border-t border-b border-slate-800 shadow-sm select-none relative z-30">
-      <div className="max-w-[1500px] mx-auto flex items-center px-1.5 sm:px-3 py-2 gap-2">
+    <div className="w-full bg-gradient-to-r from-[#eef5fc] via-[#f7faff] to-[#eef5fc] border-t border-b border-blue-200/60 shadow-xs select-none relative z-30">
+      <div className="max-w-[1500px] mx-auto flex items-center px-2 sm:px-4 py-2 gap-2">
         {/* Left Arrow Button */}
         <button
           type="button"
           onClick={() => handleScroll('left')}
-          className="shrink-0 h-10 w-7 sm:w-8 rounded-xl bg-slate-800/90 hover:bg-brand-blue hover:text-white text-slate-300 flex items-center justify-center transition-colors text-xs cursor-pointer border border-slate-700/60 shadow-xs z-10"
+          className="shrink-0 w-8 h-8 rounded-full bg-white/95 hover:bg-white hover:text-amber-600 text-slate-700 flex items-center justify-center transition-all text-xs cursor-pointer border border-slate-200/90 shadow-sm hover:shadow-md hover:scale-105 active:scale-95 z-10"
           title="Scroll Left"
           aria-label="Scroll Ribbon Left"
         >
@@ -55,7 +55,7 @@ export default function VerticalRibbonBar() {
           ref={scrollRef}
           className="ribbon-track flex-1 overflow-hidden relative"
         >
-          <div className="flex items-center gap-2.5 whitespace-nowrap w-max animate-ribbon-rtl py-0.5">
+          <div className="flex items-center gap-3 whitespace-nowrap w-max animate-ribbon-rtl py-0.5">
             {ribbonItems.map((cat, idx) => {
               const active = isVerticalActive(cat.href);
 
@@ -63,64 +63,60 @@ export default function VerticalRibbonBar() {
                 <Link
                   key={`${cat.id}-${idx}`}
                   to={cat.href}
-                  className={`group relative overflow-hidden shrink-0 flex items-center gap-2.5 px-3 py-1.5 rounded-xl transition-all duration-300 cursor-pointer w-[210px] sm:w-[240px] h-[52px] sm:h-[56px] border ${
+                  className={`group relative overflow-hidden shrink-0 flex items-center justify-between pl-3 pr-0 py-0 rounded-2xl transition-all duration-300 cursor-pointer w-[220px] sm:w-[250px] h-[52px] sm:h-[56px] bg-white border ${
                     active
-                      ? 'border-amber-400 ring-2 ring-amber-400/80 shadow-md scale-[1.02]'
-                      : 'border-white/15 hover:border-white/40 shadow-xs'
+                      ? 'border-amber-500 ring-2 ring-amber-400/60 shadow-md scale-[1.01]'
+                      : 'border-slate-200/80 hover:border-amber-400/80 shadow-xs hover:shadow-md'
                   }`}
                 >
-                  {/* Background Picture */}
-                  {cat.image ? (
-                    <img
-                      src={cat.image}
-                      alt={cat.label}
-                      className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 pointer-events-none"
-                      loading="lazy"
-                    />
-                  ) : (
-                    <div className="absolute inset-0 bg-slate-800" />
-                  )}
-
-                  {/* Dark Gradient Overlay for High Contrast White Text */}
-                  <div
-                    className={`absolute inset-0 transition-colors duration-300 ${
-                      active
-                        ? 'bg-gradient-to-r from-slate-950/95 via-slate-900/85 to-amber-950/70'
-                        : 'bg-gradient-to-r from-slate-950/90 via-slate-950/75 to-slate-900/60 group-hover:from-slate-950/80 group-hover:to-slate-900/50'
-                    }`}
-                  />
-
-                  {/* Active Gold Glow Accent */}
-                  {active && (
-                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-amber-400" />
-                  )}
-
-                  {/* Icon Glass Badge */}
-                  <div
-                    className={`relative z-10 w-8 h-8 rounded-lg flex items-center justify-center shrink-0 text-xs backdrop-blur-md border transition-all ${
-                      active
-                        ? 'bg-amber-400 text-slate-950 border-amber-300 font-bold shadow-xs'
-                        : 'bg-white/15 text-white border-white/20 group-hover:bg-white/25'
-                    }`}
-                  >
-                    <i className={cat.icon} />
-                  </div>
-
-                  {/* Caption & Subtitle in Clean White */}
-                  <div className="relative z-10 flex-1 min-w-0 flex flex-col justify-center">
-                    <h4
-                      className={`text-xs sm:text-[13px] font-extrabold tracking-tight truncate leading-tight ${
+                  {/* Left Content: Circular Container + Text */}
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1 pr-2 py-1.5 z-10">
+                    {/* Vibrant Circular Category Icon Container */}
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-xs shadow-xs transition-transform duration-300 group-hover:scale-105 ${
                         active
-                          ? 'text-amber-300'
-                          : 'text-white group-hover:text-amber-200 transition-colors'
+                          ? 'bg-gradient-to-br from-amber-500 to-orange-500 text-white font-black'
+                          : 'bg-gradient-to-br from-amber-500/95 to-orange-500/95 text-white font-bold group-hover:from-amber-500 group-hover:to-orange-500'
                       }`}
                     >
-                      {cat.label}
-                    </h4>
-                    <p className="text-[10px] sm:text-[11px] text-slate-200/85 font-medium truncate mt-0.5 leading-none">
-                      {cat.shortDesc}
-                    </p>
+                      <i className={cat.icon} />
+                    </div>
+
+                    {/* High-Contrast Category Labels */}
+                    <div className="min-w-0 flex-1">
+                      <h4
+                        className={`text-xs sm:text-[13px] font-bold tracking-tight truncate leading-tight transition-colors ${
+                          active
+                            ? 'text-amber-600'
+                            : 'text-slate-900 group-hover:text-amber-600'
+                        }`}
+                      >
+                        {cat.label}
+                      </h4>
+                      <p className="text-[10px] sm:text-[11px] font-medium text-slate-400 truncate mt-0.5 leading-none">
+                        {cat.shortDesc}
+                      </p>
+                    </div>
                   </div>
+
+                  {/* Right Window: Crisp photographic peek */}
+                  {cat.image ? (
+                    <div className="relative w-14 sm:w-16 h-full shrink-0 overflow-hidden rounded-r-2xl">
+                      <img
+                        src={cat.image}
+                        alt={cat.label}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        loading="lazy"
+                      />
+                      {/* Smooth gradient fade into white card */}
+                      <div className="absolute inset-y-0 left-0 w-3 bg-gradient-to-r from-white to-transparent pointer-events-none" />
+                    </div>
+                  ) : null}
+
+                  {/* Active bottom accent bar */}
+                  {active && (
+                    <div className="absolute left-0 bottom-0 right-0 h-0.5 bg-gradient-to-r from-amber-400 via-orange-500 to-amber-400" />
+                  )}
                 </Link>
               );
             })}
@@ -131,7 +127,7 @@ export default function VerticalRibbonBar() {
         <button
           type="button"
           onClick={() => handleScroll('right')}
-          className="shrink-0 h-10 w-7 sm:w-8 rounded-xl bg-slate-800/90 hover:bg-brand-blue hover:text-white text-slate-300 flex items-center justify-center transition-colors text-xs cursor-pointer border border-slate-700/60 shadow-xs z-10"
+          className="shrink-0 w-8 h-8 rounded-full bg-white/95 hover:bg-white hover:text-amber-600 text-slate-700 flex items-center justify-center transition-all text-xs cursor-pointer border border-slate-200/90 shadow-sm hover:shadow-md hover:scale-105 active:scale-95 z-10"
           title="Scroll Right"
           aria-label="Scroll Ribbon Right"
         >

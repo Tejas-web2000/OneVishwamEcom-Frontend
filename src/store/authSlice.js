@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { useSelector, useDispatch } from 'react-redux';
 import API from '../services/api';
+import { isJwtExpired } from '../utils/tokenUtils';
 import {
   auth,
   signInWithEmailAndPassword,
@@ -27,6 +28,7 @@ export const loginWithEmail = createAsyncThunk(
       let profileData = {
         firebaseUid: user.uid,
         email: user.email,
+        name: user.displayName || 'User',
         fullName: user.displayName || 'User',
         role: 'user',
       };
@@ -37,10 +39,12 @@ export const loginWithEmail = createAsyncThunk(
           {
             firebaseUid: user.uid,
             email: user.email,
+            role: 'user',
           },
           {
             headers: {
               Authorization: `Bearer ${idToken}`,
+              'X-Client-Role': 'user',
             },
           }
         );
@@ -68,16 +72,17 @@ export const loginUser = loginWithEmail;
 
 export const registerWithEmail = createAsyncThunk(
   'auth/registerWithEmail',
-  async ({ email, password, fullName, phoneNumber, mobile, role = 'user' }, { rejectWithValue }) => {
+  async ({ email, password, name, fullName, phoneNumber, mobile, role = 'user' }, { rejectWithValue }) => {
     try {
+      const resolvedName = (name || fullName || '').trim();
       // 1. Create account in Firebase Auth
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
       // 2. Set Firebase displayName
-      if (fullName) {
+      if (resolvedName) {
         try {
-          await updateProfile(user, { displayName: fullName });
+          await updateProfile(user, { displayName: resolvedName });
         } catch (profileErr) {
           console.warn('[Firebase] updateProfile warning:', profileErr.message);
         }
@@ -89,8 +94,8 @@ export const registerWithEmail = createAsyncThunk(
       let profileData = {
         firebaseUid: user.uid,
         email: user.email,
-        fullName: fullName || user.displayName || 'User',
-        name: fullName || user.displayName || 'User',
+        name: resolvedName || user.displayName || 'User',
+        fullName: resolvedName || user.displayName || 'User',
         phoneNumber: phoneNumber || mobile || '',
         mobile: phoneNumber || mobile || '',
         role: role,
@@ -103,7 +108,8 @@ export const registerWithEmail = createAsyncThunk(
           {
             firebaseUid: user.uid,
             email: user.email,
-            fullName,
+            name: resolvedName,
+            fullName: resolvedName,
             phoneNumber: phoneNumber || mobile,
             role,
           },
@@ -149,6 +155,7 @@ export const loginWithGoogle = createAsyncThunk(
       let profileData = {
         firebaseUid: user.uid,
         email: user.email,
+        name: user.displayName || 'User',
         fullName: user.displayName || 'User',
         avatar: user.photoURL || '',
         role: 'user',
@@ -160,12 +167,15 @@ export const loginWithGoogle = createAsyncThunk(
           {
             firebaseUid: user.uid,
             email: user.email,
+            name: user.displayName,
             fullName: user.displayName,
             avatar: user.photoURL,
+            role: 'user',
           },
           {
             headers: {
               Authorization: `Bearer ${idToken}`,
+              'X-Client-Role': 'user',
             },
           }
         );
@@ -180,7 +190,11 @@ export const loginWithGoogle = createAsyncThunk(
       return profileData;
     } catch (error) {
       let msg = error.message || 'Google sign-in failed';
-      if (error.code === 'auth/popup-closed-by-user') {
+      if (error.code === 'auth/unauthorized-domain') {
+        msg = `Domain "${window.location.hostname}" is not authorized in Firebase Console. Please add "${window.location.hostname}" to Firebase Console -> Authentication -> Settings -> Authorized Domains.`;
+      } else if (error.code === 'auth/popup-blocked') {
+        msg = 'Sign-in popup was blocked by your browser. Please allow popups for this site and try again.';
+      } else if (error.code === 'auth/popup-closed-by-user') {
         msg = 'Google sign-in popup was closed before completing.';
       } else if (error.code === 'auth/configuration-not-found' || error.code === 'auth/operation-not-allowed') {
         msg = 'Google sign-in is not yet enabled in your Firebase Console. Please enable Google provider in Firebase Console > Authentication > Sign-in method.';
@@ -201,6 +215,7 @@ export const loginWithFacebook = createAsyncThunk(
       let profileData = {
         firebaseUid: user.uid,
         email: user.email,
+        name: user.displayName || 'User',
         fullName: user.displayName || 'User',
         avatar: user.photoURL || '',
         role: 'user',
@@ -212,12 +227,15 @@ export const loginWithFacebook = createAsyncThunk(
           {
             firebaseUid: user.uid,
             email: user.email,
+            name: user.displayName,
             fullName: user.displayName,
             avatar: user.photoURL,
+            role: 'user',
           },
           {
             headers: {
               Authorization: `Bearer ${idToken}`,
+              'X-Client-Role': 'user',
             },
           }
         );
@@ -269,27 +287,79 @@ export const fetchMe = createAsyncThunk('auth/fetchMe', async (_, { rejectWithVa
 
 export const updateUserProfile = createAsyncThunk(
   'auth/updateProfile',
-  async (body, { rejectWithValue }) => {
+  async (body, { rejectWithValue, dispatch }) => {
     try {
-      // 1. If Firebase Auth has an active user and fullName was changed, sync Firebase displayName
-      if (auth.currentUser && body.fullName) {
+      if (auth && typeof auth.authStateReady === 'function') {
+        await auth.authStateReady();
+      }
+
+      const currentUser = auth.currentUser;
+      let idToken;
+
+      if (currentUser) {
         try {
-          await updateProfile(auth.currentUser, { displayName: body.fullName });
+          idToken = await currentUser.getIdToken(true);
+          localStorage.setItem('accessToken', idToken);
+        } catch (tokErr) {
+          console.warn('[updateProfile] Failed to force refresh token:', tokErr);
+          idToken = await currentUser.getIdToken(false);
+        }
+      } else {
+        const storedToken = localStorage.getItem('accessToken');
+        if (!storedToken || isJwtExpired(storedToken)) {
+          localStorage.removeItem('user');
+          localStorage.removeItem('accessToken');
+          dispatch(forceLogout());
+          return rejectWithValue('Unauthorized: Firebase token has expired. Please sign in again.');
+        }
+        idToken = storedToken;
+      }
+
+      const resolvedName = (body.name || body.fullName || '').trim();
+      // 1. If Firebase Auth has an active user and name was changed, sync Firebase displayName
+      if (currentUser && resolvedName) {
+        try {
+          await updateProfile(currentUser, { displayName: resolvedName });
         } catch (fbErr) {
           console.warn('[Firebase] updateProfile warning:', fbErr.message);
         }
       }
 
       // 2. Fetch fresh token for backend authorization
-      const idToken = auth.currentUser ? await auth.currentUser.getIdToken(true) : undefined;
-      const res = await API.post('/auth/sync', body, {
-        headers: idToken ? { Authorization: `Bearer ${idToken}` } : undefined,
+      const syncPayload = {
+        ...body,
+        role: body?.role || 'user',
+      };
+      const res = await API.post('/auth/sync', syncPayload, {
+        headers: {
+          ...(idToken ? { Authorization: `Bearer ${idToken}` } : {}),
+          'X-Client-Role': 'user',
+        },
       });
       const user = res.data.data;
       localStorage.setItem('user', JSON.stringify(user));
       return user;
     } catch (err) {
-      return rejectWithValue(err.response?.data?.message || err.message || 'Update failed');
+      const respData = err.response?.data;
+      const rawError = respData?.error || respData?.message || err.message || 'Update failed';
+      const errMsg = String(rawError);
+
+      if (errMsg.toLowerCase().includes('expired') || errMsg.toLowerCase().includes('unauthorized')) {
+        localStorage.removeItem('user');
+        localStorage.removeItem('accessToken');
+        dispatch(forceLogout());
+        return rejectWithValue('Unauthorized: Firebase token has expired. Please sign in again.');
+      }
+
+      if ((errMsg.includes('E11000') || errMsg.includes('duplicate key')) && !errMsg.includes('null')) {
+        return rejectWithValue('This mobile number is already registered with another account. Please use a different mobile number.');
+      }
+
+      if (respData?.message && respData.message !== 'Failed to persist user in database') {
+        return rejectWithValue(respData.message);
+      }
+
+      return rejectWithValue(errMsg);
     }
   }
 );
@@ -472,6 +542,11 @@ const authSlice = createSlice({
         state.isLoggedIn = true;
         state.user = action.payload;
         state.successMessage = 'Signed in with Google!';
+        const hasPhone = Boolean(action.payload?.phoneNumber || action.payload?.mobile || action.payload?.phone);
+        if (!hasPhone) {
+          state.showAuthModal = true;
+          state.authModalMode = 'require-phone';
+        }
       })
       .addCase(loginWithGoogle.rejected, handleRejected)
 
@@ -482,6 +557,11 @@ const authSlice = createSlice({
         state.isLoggedIn = true;
         state.user = action.payload;
         state.successMessage = 'Signed in with Facebook!';
+        const hasPhone = Boolean(action.payload?.phoneNumber || action.payload?.mobile || action.payload?.phone);
+        if (!hasPhone) {
+          state.showAuthModal = true;
+          state.authModalMode = 'require-phone';
+        }
       })
       .addCase(loginWithFacebook.rejected, handleRejected)
 
@@ -496,6 +576,10 @@ const authSlice = createSlice({
       .addCase(fetchMe.fulfilled, (state, action) => {
         state.isLoggedIn = true;
         state.user = action.payload;
+        const hasPhone = Boolean(action.payload?.phoneNumber || action.payload?.mobile || action.payload?.phone);
+        if (hasPhone && state.authModalMode === 'require-phone') {
+          state.showAuthModal = false;
+        }
       })
       .addCase(fetchMe.rejected, (state) => {
         // If session expired
@@ -509,6 +593,10 @@ const authSlice = createSlice({
         state.loading = false;
         state.user = action.payload;
         state.successMessage = 'Profile updated successfully';
+        const hasPhone = Boolean(action.payload?.phoneNumber || action.payload?.mobile || action.payload?.phone);
+        if (hasPhone && state.authModalMode === 'require-phone') {
+          state.showAuthModal = false;
+        }
       })
       .addCase(updateUserProfile.rejected, handleRejected)
 

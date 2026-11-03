@@ -1,5 +1,5 @@
 /**
- * Real Estate & Property Sector Configuration
+ * Properties Sector Configuration
  */
 import {
   PROPERTY_CARD_TYPES,

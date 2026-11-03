@@ -9,7 +9,7 @@ import React from 'react';
  *
  * Props
  * ─────
- * eyebrow    – Small all-caps label above the title (e.g. "OneVishwam · Real Estate")
+ * eyebrow    – Small all-caps label above the title (e.g. "OneVishwam · Properties")
  * title      – Page H1 (e.g. "Find Your Property")
  * count      – Optional live count of results (shows availability badge when provided)
  * countLabel – Singular noun for the badge (default "listing")
@@ -18,7 +18,7 @@ import React from 'react';
  * Example
  * ───────
  * <SectorPageHeader
- *   eyebrow="OneVishwam · Real Estate"
+ *   eyebrow="OneVishwam · Properties"
  *   title="Find Your Property"
  *   count={filteredProperties.length}
  *   countLabel="listing"
