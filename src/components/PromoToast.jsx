@@ -100,14 +100,14 @@ export default function PromoToast() {
       {/* Toast Card (Clicking opens Promo Modal) */}
       <div
         onClick={handleToastClick}
-        className="relative overflow-hidden rounded-2xl bg-white/95 backdrop-blur-md text-slate-900 border border-amber-300/85 shadow-[0_15px_45px_rgba(0,0,0,0.18),0_0_20px_rgba(245,158,11,0.12)] p-4 sm:p-4.5 cursor-pointer group/toast"
+        className="relative overflow-hidden rounded-2xl bg-white/95 backdrop-blur-md text-slate-900 border border-slate-200 shadow-xl p-4 sm:p-4.5 cursor-pointer group/toast"
       >
         {/* Subtle Ambient Corner Glow */}
-        <div className="absolute -top-10 -right-10 w-28 h-28 bg-amber-400/15 rounded-full blur-2xl pointer-events-none" />
-        <div className="absolute -bottom-10 -left-10 w-28 h-28 bg-blue-400/10 rounded-full blur-2xl pointer-events-none" />
+        <div className="absolute -top-10 -right-10 w-28 h-28 bg-blue-400/15 rounded-full blur-2xl pointer-events-none" />
+        <div className="absolute -bottom-10 -left-10 w-28 h-28 bg-sky-400/10 rounded-full blur-2xl pointer-events-none" />
 
-        {/* Top Gold Accent Bar */}
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-500" />
+        {/* Top Accent Bar */}
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-500" />
 
         {/* Close Button */}
         <button
@@ -134,15 +134,15 @@ export default function PromoToast() {
           {/* Text Content */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5 mb-0.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-              <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-700">
-                Onevishwam Deal
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse" />
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-blue-600">
+                Special Offer
               </span>
             </div>
 
-            <h3 className="text-sm font-black text-slate-900 tracking-tight leading-snug group-hover/toast:text-amber-700 transition-colors">
+            <h3 className="text-sm font-black text-slate-900 tracking-tight leading-snug group-hover/toast:text-blue-600 transition-colors">
               PAY 1 EMI,{' '}
-              <span className="bg-gradient-to-r from-amber-600 via-yellow-600 to-amber-500 bg-clip-text text-transparent">
+              <span className="text-blue-600 underline decoration-blue-300 decoration-2 underline-offset-2">
                 BUY PROPERTY!
               </span>
             </h3>
@@ -156,7 +156,7 @@ export default function PromoToast() {
               <button
                 type="button"
                 onClick={handleToastClick}
-                className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 active:scale-95 text-slate-950 px-3.5 py-1.5 text-xs font-black shadow-md shadow-amber-500/25 transition-all cursor-pointer"
+                className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 active:scale-95 text-white px-3.5 py-1.5 text-xs font-extrabold shadow-md shadow-blue-500/20 transition-all cursor-pointer"
               >
                 <span>View Offer Details</span>
                 <i className="fa-solid fa-arrow-right text-[10px]" />
