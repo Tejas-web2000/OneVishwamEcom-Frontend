@@ -658,7 +658,7 @@ function Navbar() {
       </div>
 
       {/* Document flow spacer for fixed header & top ribbon */}
-      <div className="h-[96px] lg:h-[92px]" aria-hidden="true" />
+      <div className="h-[102px] lg:h-[98px]" aria-hidden="true" />
 
       {/* Mobile overlay */}
       <div className={`fixed inset-0 z-40 bg-black/30 transition-opacity lg:hidden ${menuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
