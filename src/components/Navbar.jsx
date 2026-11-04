@@ -70,6 +70,7 @@ const CATEGORY_THEMES = {
 };
 
 function Navbar() {
+  const dropdownCategories = marketplaceCategories.filter((cat) => cat.id !== 'all-categories');
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileCategoryOpen, setMobileCategoryOpen] = useState(false);
   const [showListingModal, setShowListingModal] = useState(false);
@@ -381,7 +382,7 @@ function Navbar() {
           }`}
         >
           <header
-            className={`pointer-events-auto transition-all duration-300 ease-in-out ${
+            className={`relative z-30 pointer-events-auto transition-all duration-300 ease-in-out ${
               scrolled
                 ? 'mx-auto max-w-6xl xl:max-w-7xl rounded-full bg-white/98 backdrop-blur-md border border-slate-300 shadow-[0_12px_40px_rgba(15,23,42,0.18)] px-4 sm:px-6'
                 : 'w-full bg-white/98 backdrop-blur-md border-b border-slate-300 shadow-sm px-4 sm:px-6 lg:px-8 rounded-none'
@@ -422,7 +423,7 @@ function Navbar() {
               {/* Categories Dropdown Menu */}
               <div
                 ref={categoryRef}
-                className="relative"
+                className="relative z-40"
                 onMouseEnter={() => showDropdown('categories')}
                 onMouseLeave={hideDropdown}
               >
@@ -465,7 +466,7 @@ function Navbar() {
                             Marketplace Categories
                           </span>
                           <span className="text-[10px] font-semibold text-slate-500 bg-white px-2 py-0.5 rounded-full border border-slate-200">
-                            {marketplaceCategories.length} Active
+                            {dropdownCategories.length} Active
                           </span>
                         </div>
                         <Link
@@ -480,7 +481,7 @@ function Navbar() {
 
                       {/* Categories Grid with Highlighting Cards */}
                       <div className="p-3.5 grid grid-cols-2 gap-2.5 bg-gradient-to-b from-slate-50/60 to-white">
-                        {marketplaceCategories.map((cat) => {
+                        {dropdownCategories.map((cat) => {
                           const isItemActive = currentLocation.pathname === cat.href;
                           const theme = CATEGORY_THEMES[cat.id] || {
                             gradient: 'from-blue-600 to-indigo-600',
@@ -650,7 +651,7 @@ function Navbar() {
       </header>
 
       {/* ── Notifications / Festival Offers Bar (Directly Under Menubar) ── */}
-      <div className="pointer-events-auto">
+      <div className="relative z-10 pointer-events-auto">
         <TopNotificationBar isScrolled={scrolled} />
       </div>
         </div>
@@ -757,7 +758,7 @@ function Navbar() {
 
             {mobileCategoryOpen && (
               <div className="ml-4 pl-3 my-1.5 border-l-2 border-brand-blue/20 space-y-0.5">
-                {marketplaceCategories.map((cat) => {
+                {dropdownCategories.map((cat) => {
                   if (cat.disabled) {
                     return (
                       <div
