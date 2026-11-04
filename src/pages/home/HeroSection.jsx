@@ -203,15 +203,8 @@ function AllServicesVectorIcon({ className = 'w-10 h-10' }) {
   );
 }
 
-/* ── The 5 Main Categories for Marketplace Points Module ── */
+/* ── The Main Categories for Marketplace Points Module ── */
 const FIVE_CATEGORIES = [
-  {
-    id: 'all-services',
-    title: 'All Categories',
-    link: '/categories',
-    Icon: AllServicesVectorIcon,
-    bgGlow: 'bg-rose-50/90 group-hover:bg-rose-100/90',
-  },
   {
     id: 'properties',
     title: 'Properties',
@@ -473,8 +466,29 @@ export default function HeroSection() {
           ═══════════════════════════════════════════════════════════ */}
       <section className="bg-gradient-to-r from-slate-200/95 via-[#dbe7f4] to-slate-200/95 py-3.5 sm:py-4 border-b-2 border-slate-300 shadow-xs relative z-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* 5 Category Cards Grid with Lineal Color Vector Icons */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+          {/* Top Row with Section Label & All Categories Link in Top Right */}
+          <div className="flex items-center justify-between mb-2.5 sm:mb-3">
+            <div className="flex items-center gap-2">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-blue opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-blue"></span>
+              </span>
+              <span className="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-slate-800">
+                Categories
+              </span>
+            </div>
+
+            <Link
+              to="/categories"
+              className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-brand-blue hover:text-brand-navy hover:underline group transition-all"
+            >
+              <span>All Categories</span>
+              <i className="fa-solid fa-arrow-right text-[11px] sm:text-xs group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
+
+          {/* 4 Category Cards Grid with Lineal Color Vector Icons */}
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             {FIVE_CATEGORIES.map((item) => {
               const IconComponent = item.Icon;
               return (
