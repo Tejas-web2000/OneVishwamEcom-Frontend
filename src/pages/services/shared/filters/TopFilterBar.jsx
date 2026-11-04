@@ -31,7 +31,7 @@ export function FilterToggle({ checked, onChange, label, icon }) {
 export function TopFilterBar({
   cityValue = 'bengaluru',
   onCityChange,
-  citiesList = ['Bengaluru', 'Mumbai', 'Delhi', 'Hyderabad', 'Chennai', 'Pune'],
+  citiesList = ['Bengaluru'],
   areaValue = '',
   onAreaChange,
   areasList = [],
