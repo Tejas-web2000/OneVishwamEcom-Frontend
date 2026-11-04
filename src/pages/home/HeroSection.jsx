@@ -242,7 +242,6 @@ const POPULAR_CHIPS = [
   { label: 'Maruti Brezza', category: 'automobile' },
   { label: 'Orthopedic Mattress', category: 'bedding-comfort' },
   { label: '5 Star AC', category: 'consumer-electronics' },
-  { label: 'Commercial Spaces', category: 'properties' },
 ];
 
 /* ── Address Highlight Helper matching NoBroker / Google Places Autocomplete UI ── */
@@ -759,17 +758,17 @@ export default function HeroSection() {
                 </button>
               </div>
 
-              {/* Trending Section */}
-              <div className="mt-5 flex items-center justify-center gap-2 overflow-x-auto scrollbar-hide py-1">
-                <span className="rounded-full bg-slate-900 text-slate-100 px-3.5 py-1.5 text-xs font-black shadow-sm border border-slate-800 flex items-center gap-1.5 shrink-0">
-                  <i className="fa-solid fa-fire text-[#eb4e52] text-xs" /> TRENDING:
+              {/* Trending Section (Width matched to search bar, shrunk & compact) */}
+              <div className="mt-4 sm:mt-4.5 w-full max-w-3xl flex items-center justify-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-hide py-1">
+                <span className="rounded-full bg-slate-900 text-slate-100 px-2.5 sm:px-3 py-1 text-[10px] sm:text-xs font-black shadow-xs border border-slate-800 flex items-center gap-1.5 shrink-0">
+                  <i className="fa-solid fa-fire text-[#eb4e52] text-[10px] sm:text-xs" /> TRENDING:
                 </span>
                 {POPULAR_CHIPS.map((chip, idx) => (
                   <button
                     key={idx}
                     type="button"
                     onClick={() => handleChipClick(chip)}
-                    className="shrink-0 rounded-full bg-slate-100 hover:bg-white text-slate-800 hover:text-brand-blue px-4 py-1.5 text-xs font-bold shadow-xs border-2 border-slate-300 hover:border-brand-blue transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                    className="shrink-0 rounded-full bg-slate-100 hover:bg-white text-slate-800 hover:text-brand-blue px-2.5 sm:px-3 py-1 text-[11px] sm:text-xs font-bold shadow-xs border-2 border-slate-300 hover:border-brand-blue transition-all hover:scale-105 active:scale-95 cursor-pointer"
                   >
                     {chip.label || chip}
                   </button>
