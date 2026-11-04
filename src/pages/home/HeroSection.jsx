@@ -466,23 +466,13 @@ export default function HeroSection() {
           ═══════════════════════════════════════════════════════════ */}
       <section className="bg-gradient-to-r from-slate-200/95 via-[#dbe7f4] to-slate-200/95 py-3.5 sm:py-4 border-b-2 border-slate-300 shadow-xs relative z-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Top Row with Section Label & All Categories Link in Top Right */}
-          <div className="flex items-center justify-between mb-2.5 sm:mb-3">
-            <div className="flex items-center gap-2">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-blue opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-blue"></span>
-              </span>
-              <span className="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-slate-800">
-                Categories
-              </span>
-            </div>
-
+          {/* Top-Right 'Click here for more' Link */}
+          <div className="flex items-center justify-end mb-2 sm:mb-2.5">
             <Link
               to="/categories"
               className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-brand-blue hover:text-brand-navy hover:underline group transition-all"
             >
-              <span>All Categories</span>
+              <span>Click here for more</span>
               <i className="fa-solid fa-arrow-right text-[11px] sm:text-xs group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
