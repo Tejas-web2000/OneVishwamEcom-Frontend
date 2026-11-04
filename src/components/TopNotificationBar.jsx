@@ -44,19 +44,19 @@ const FALLBACK_ANNOUNCEMENTS = [
 
 const TYPE_STYLES = {
   offer: {
-    badge: 'bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950',
+    badge: 'bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-bold',
     icon: 'fa-solid fa-gift',
   },
   product_update: {
-    badge: 'bg-gradient-to-r from-emerald-400 to-teal-500 text-slate-950',
+    badge: 'bg-gradient-to-r from-emerald-400 to-teal-500 text-slate-950 font-bold',
     icon: 'fa-solid fa-fire',
   },
   alert: {
-    badge: 'bg-gradient-to-r from-rose-500 to-pink-500 text-white',
+    badge: 'bg-gradient-to-r from-rose-500 to-pink-500 text-white font-bold',
     icon: 'fa-solid fa-bell',
   },
   general: {
-    badge: 'bg-gradient-to-r from-sky-400 to-blue-500 text-slate-950',
+    badge: 'bg-gradient-to-r from-sky-400 to-blue-500 text-slate-950 font-bold',
     icon: 'fa-solid fa-bullhorn',
   },
 };
@@ -107,7 +107,8 @@ export default function TopNotificationBar({ isScrolled }) {
         setAnnouncements(items);
       }
     } catch {
-      // Keep fallbacks silently if backend endpoint is unavailable
+      // Gracefully fall back to local announcements if offline/server unavailable
+      setAnnouncements(FALLBACK_ANNOUNCEMENTS);
     } finally {
       inFlightPromise = null;
     }
@@ -125,15 +126,6 @@ export default function TopNotificationBar({ isScrolled }) {
       setCurrentIndex((prev) => (prev + 1) % announcements.length);
       setFadeState('in');
     }, 700); // 700ms slow fade out, then fade in next message
-  }, [announcements.length]);
-
-  const goToPrev = useCallback(() => {
-    if (announcements.length <= 1) return;
-    setFadeState('out');
-    setTimeout(() => {
-      setCurrentIndex((prev) => (prev - 1 + announcements.length) % announcements.length);
-      setFadeState('in');
-    }, 700);
   }, [announcements.length]);
 
   useEffect(() => {
@@ -157,100 +149,51 @@ export default function TopNotificationBar({ isScrolled }) {
     <div
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
-      className={`w-full bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 text-white select-none overflow-hidden transition-all duration-300 ease-in-out pointer-events-auto border-b border-slate-800/80 shadow-xs relative z-10 ${
+      className={`w-full bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 text-white select-none overflow-hidden transition-all duration-300 ease-in-out pointer-events-auto border-b border-indigo-500/20 shadow-md relative z-10 ${
         isScrolled
           ? 'h-0 opacity-0 -translate-y-full py-0 border-b-0 pointer-events-none'
-          : 'py-2 sm:py-2.5 min-h-[38px] sm:min-h-[40px] opacity-100 translate-y-0'
+          : 'py-2.5 sm:py-3 min-h-[44px] sm:min-h-[48px] opacity-100 translate-y-0'
       }`}
     >
-      <div className="max-w-7xl mx-auto h-full px-3 sm:px-6 flex items-center justify-between gap-3 text-xs">
-        {/* Left Arrow (Desktop) */}
-        {announcements.length > 1 && (
-          <button
-            type="button"
-            onClick={goToPrev}
-            className="hidden sm:flex text-slate-400 hover:text-white transition-colors p-1"
-            title="Previous notification"
-            aria-label="Previous notification"
-          >
-            <i className="fa-solid fa-chevron-left text-[10px]" />
-          </button>
-        )}
+      {/* Top luminous accent shimmer line */}
+      <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-amber-400 to-transparent opacity-75" />
 
-        {/* Center Notification Content with Slow Fade/Slide Transition */}
-        <div className="flex-1 flex items-center justify-center min-w-0 overflow-hidden">
+      <div className="max-w-7xl mx-auto h-full px-4 sm:px-6 flex items-center justify-center text-xs sm:text-sm">
+        {/* Center Notification Content with Smooth Fade/Slide Transition */}
+        <div className="flex items-center justify-center min-w-0 overflow-hidden">
           <div
-            className={`flex items-center gap-2 sm:gap-3 transition-all duration-700 ease-in-out transform ${
+            className={`flex items-center justify-center flex-wrap sm:flex-nowrap gap-2 sm:gap-3.5 transition-all duration-700 ease-in-out transform ${
               fadeState === 'in'
-                ? 'opacity-100 translate-y-0 filter blur-0'
-                : 'opacity-0 -translate-y-2 filter blur-xs'
+                ? 'opacity-100 translate-y-0 filter blur-0 scale-100'
+                : 'opacity-0 -translate-y-2 filter blur-xs scale-[0.98]'
             }`}
           >
-            {/* Pulsing Pill Badge */}
+            {/* Highlighted Pill Badge */}
             <span
-              className={`shrink-0 text-[9px] sm:text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full shadow-xs flex items-center gap-1.5 ${typeCfg.badge}`}
+              className={`shrink-0 text-[10px] sm:text-xs font-black uppercase tracking-wider px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full shadow-sm flex items-center gap-1.5 ${typeCfg.badge}`}
             >
-              <i className={`${typeCfg.icon} text-[9px]`} />
+              <i className={`${typeCfg.icon} text-[10px] sm:text-xs animate-pulse`} />
               <span>{currentItem.badgeText || (currentItem.type === 'offer' ? 'OFFER' : 'UPDATE')}</span>
             </span>
 
             {/* Notification Text */}
-            <p className="text-[11px] sm:text-xs font-medium text-slate-200 truncate max-w-[280px] sm:max-w-xl md:max-w-2xl">
+            <p className="text-xs sm:text-sm font-semibold text-slate-100 truncate max-w-[280px] sm:max-w-xl md:max-w-2xl lg:max-w-3xl tracking-wide">
               {currentItem.message}
             </p>
 
-            {/* Direct Link Action */}
+            {/* Attractive Action Button */}
             {currentItem.link && (
               <Link
                 to={currentItem.link}
-                className="shrink-0 inline-flex items-center gap-1 text-[11px] font-bold text-amber-400 hover:text-amber-300 underline underline-offset-2 ml-1"
+                className="shrink-0 inline-flex items-center gap-1.5 px-3 py-0.5 sm:py-1 text-xs font-bold text-slate-950 bg-gradient-to-r from-amber-400 to-amber-300 hover:from-amber-300 hover:to-amber-200 rounded-full shadow-xs hover:shadow-md transition-all duration-200 hover:scale-105 active:scale-95 ml-1"
               >
                 <span>View</span>
-                <i className="fa-solid fa-arrow-right text-[9px]" />
+                <i className="fa-solid fa-arrow-right text-[10px]" />
               </Link>
             )}
           </div>
-        </div>
-
-        {/* Right Arrow (Desktop) + Counter Dots */}
-        <div className="flex items-center gap-2 shrink-0">
-          {announcements.length > 1 && (
-            <>
-              {/* Pagination Dots */}
-              <div className="hidden md:flex items-center gap-1">
-                {announcements.slice(0, 5).map((_, i) => (
-                  <button
-                    key={i}
-                    type="button"
-                    onClick={() => {
-                      setFadeState('out');
-                      setTimeout(() => {
-                        setCurrentIndex(i);
-                        setFadeState('in');
-                      }, 400);
-                    }}
-                    className={`h-1.5 rounded-full transition-all duration-300 ${
-                      i === currentIndex ? 'w-4 bg-amber-400' : 'w-1.5 bg-slate-700 hover:bg-slate-500'
-                    }`}
-                    aria-label={`Go to slide ${i + 1}`}
-                  />
-                ))}
-              </div>
-
-              <button
-                type="button"
-                onClick={goToNext}
-                className="hidden sm:flex text-slate-400 hover:text-white transition-colors p-1"
-                title="Next notification"
-                aria-label="Next notification"
-              >
-                <i className="fa-solid fa-chevron-right text-[10px]" />
-              </button>
-            </>
-          )}
         </div>
       </div>
     </div>
   );
 }
-

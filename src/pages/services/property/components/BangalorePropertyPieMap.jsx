@@ -413,8 +413,11 @@ function BangalorePropertyPieMap({ properties = [], activeZone, onSelectZone }) 
             <img
               src={bangaloreBbmpMap}
               alt="Bangalore BBMP Map"
-              style={{ imageRendering: '-webkit-optimize-contrast' }}
-              className="absolute inset-0 w-full h-full object-contain pointer-events-none select-none"
+              style={{
+                imageRendering: '-webkit-optimize-contrast',
+                filter: 'brightness(1.22) contrast(1.10) saturate(1.18)',
+              }}
+              className="absolute inset-0 w-full h-full object-contain pointer-events-none select-none transition-all duration-300"
             />
 
             {/* Floating Active / Hovered Zone Badge */}

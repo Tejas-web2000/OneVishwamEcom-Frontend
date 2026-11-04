@@ -11,25 +11,33 @@ function load(key, fallback) {
   }
 }
 
+const savedCity = load('vishwam_city', defaultCity);
+const initialCity = cities[savedCity] ? savedCity : defaultCity;
+const savedArea = load('vishwam_area', defaultArea);
+const initialArea = cities[initialCity]?.areas?.includes(savedArea)
+  ? savedArea
+  : (cities[initialCity]?.areas?.[0] || defaultArea);
+
 const locationSlice = createSlice({
   name: 'location',
   initialState: {
-    selectedCity: load('vishwam_city', defaultCity),
-    selectedArea: load('vishwam_area', defaultArea),
+    selectedCity: initialCity,
+    selectedArea: initialArea,
     detectStatus: 'idle',
   },
   reducers: {
     selectCity(state, action) {
-      const cityId = action.payload;
+      const cityId = cities[action.payload] ? action.payload : defaultCity;
       state.selectedCity = cityId;
-      state.selectedArea = cities[cityId]?.areas[0] || defaultArea;
+      state.selectedArea = cities[cityId]?.areas?.[0] || defaultArea;
     },
     selectArea(state, action) {
-      state.selectedCity = action.payload.city;
+      const cityId = cities[action.payload.city] ? action.payload.city : defaultCity;
+      state.selectedCity = cityId;
       state.selectedArea = action.payload.area;
     },
     setCity(state, action) {
-      state.selectedCity = action.payload;
+      state.selectedCity = cities[action.payload] ? action.payload : defaultCity;
     },
     setArea(state, action) {
       state.selectedArea = action.payload;
@@ -40,7 +48,7 @@ const locationSlice = createSlice({
   },
 });
 
-export const { selectCity, selectArea, setArea, setDetectStatus } = locationSlice.actions;
+export const { selectCity, selectArea, setCity, setArea, setDetectStatus } = locationSlice.actions;
 export default locationSlice.reducer;
 
 export function useLocation() {

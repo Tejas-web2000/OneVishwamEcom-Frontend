@@ -203,15 +203,8 @@ function AllServicesVectorIcon({ className = 'w-10 h-10' }) {
   );
 }
 
-/* ── The 5 Main Categories for Marketplace Points Module ── */
+/* ── The Main Categories for Marketplace Points Module ── */
 const FIVE_CATEGORIES = [
-  {
-    id: 'all-services',
-    title: 'All Categories',
-    link: '/categories',
-    Icon: AllServicesVectorIcon,
-    bgGlow: 'bg-rose-50/90 group-hover:bg-rose-100/90',
-  },
   {
     id: 'properties',
     title: 'Properties',
@@ -244,12 +237,12 @@ const FIVE_CATEGORIES = [
 
 /* ── Popular Search Chips with Category Targeting ── */
 const POPULAR_CHIPS = [
-  { label: 'Gated Plots Bengaluru', category: 'properties' },
-  { label: '3 BHK Whitefield', category: 'properties' },
-  { label: 'Maruti Brezza', category: 'automobile' },
-  { label: 'Orthopedic Mattress', category: 'bedding-comfort' },
-  { label: '5 Star AC', category: 'consumer-electronics' },
-  { label: 'Commercial Spaces', category: 'properties' },
+  { label: 'Gated Plots', category: 'properties', query: 'Gated Plots Bengaluru' },
+  { label: '3 BHK Whitefield', category: 'properties', query: '3 BHK Whitefield' },
+  { label: 'Maruti Brezza', category: 'automobile', query: 'Maruti Brezza' },
+  { label: 'Ortho Mattress', category: 'bedding-comfort', query: 'Orthopedic Mattress' },
+  { label: '5 Star AC', category: 'consumer-electronics', query: '5 Star AC' },
+  { label: 'Commercial', category: 'properties', query: 'Commercial Spaces' },
 ];
 
 /* ── Address Highlight Helper matching NoBroker / Google Places Autocomplete UI ── */
@@ -445,7 +438,7 @@ export default function HeroSection() {
   };
 
   const handleChipClick = (chip) => {
-    const chipText = typeof chip === 'string' ? chip : chip.label;
+    const chipText = typeof chip === 'string' ? chip : (chip.query || chip.label);
     const cat = typeof chip === 'object' && chip.category ? chip.category : null;
     setShowSuggestions(false);
 
@@ -473,8 +466,19 @@ export default function HeroSection() {
           ═══════════════════════════════════════════════════════════ */}
       <section className="bg-gradient-to-r from-slate-200/95 via-[#dbe7f4] to-slate-200/95 py-3.5 sm:py-4 border-b-2 border-slate-300 shadow-xs relative z-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* 5 Category Cards Grid with Lineal Color Vector Icons */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+          {/* Top-Right 'Click here for more' Link */}
+          <div className="flex items-center justify-end mb-2 sm:mb-2.5">
+            <Link
+              to="/categories"
+              className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-brand-blue hover:text-brand-navy hover:underline group transition-all"
+            >
+              <span>Click here for more</span>
+              <i className="fa-solid fa-arrow-right text-[11px] sm:text-xs group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
+
+          {/* 4 Category Cards Grid with Lineal Color Vector Icons */}
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             {FIVE_CATEGORIES.map((item) => {
               const IconComponent = item.Icon;
               return (
@@ -520,9 +524,8 @@ export default function HeroSection() {
             return (
               <div
                 key={slide.id}
-                className={`absolute inset-0 overflow-hidden transition-opacity duration-1000 ease-in-out ${
-                  active ? 'opacity-100' : 'opacity-0'
-                }`}
+                className={`absolute inset-0 overflow-hidden transition-opacity duration-1000 ease-in-out ${active ? 'opacity-100' : 'opacity-0'
+                  }`}
               >
                 <img
                   src={slide.image}
@@ -599,11 +602,11 @@ export default function HeroSection() {
                 Category Tabs & Search Bar Components
                 ═══════════════════════════════════════════════════════════ */}
             <div className="mt-6 sm:mt-8 w-full max-w-5xl mx-auto px-1 sm:px-4">
-              <div className="flex flex-row items-end justify-center gap-2 sm:gap-3 w-full">
-                {/* ── Left Column: 5 Search Tabs on top, Search Input Box directly below ──
-                    Both are child elements of this column and share w-full, guaranteeing 
-                    that the search input area is 100% equivalent to the 5 options width. */}
-                <div ref={searchContainerRef} className="relative flex-1 max-w-3xl lg:max-w-4xl min-w-0 flex flex-col z-40">
+              <div className="flex flex-row items-start justify-center gap-2 sm:gap-3 w-full">
+                {/* ── Left Column: 5 Search Tabs on top, Search Input Box directly below, and Trending Chips underneath ──
+                    All share the exact same left-to-right boundary and width as the search input box! */}
+                <div className="flex-1 max-w-3xl lg:max-w-4xl min-w-0 flex flex-col">
+                  <div ref={searchContainerRef} className="relative w-full flex flex-col z-40">
                   {/* 5 Equivalent Search Tabs */}
                   <div className="grid grid-cols-5 gap-1.5 sm:gap-2 mb-2 sm:mb-2.5 relative z-20 w-full">
                     {SEARCH_TABS.map((tab) => {
@@ -613,11 +616,10 @@ export default function HeroSection() {
                           key={tab.id}
                           type="button"
                           onClick={() => setActiveCategory(tab.id)}
-                          className={`w-full inline-flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3 h-10 sm:h-11 text-[11px] sm:text-xs md:text-sm rounded-xl font-bold transition-all cursor-pointer truncate ${
-                            isActive
-                              ? 'bg-white text-slate-950 font-black shadow-md border-2 border-slate-400 z-20 ring-2 ring-slate-400/20'
-                              : 'bg-slate-200/90 hover:bg-white text-slate-800 hover:text-slate-950 font-extrabold border-2 border-slate-300 shadow-xs'
-                          }`}
+                          className={`w-full inline-flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3 h-10 sm:h-11 text-[11px] sm:text-xs md:text-sm rounded-xl font-bold transition-all cursor-pointer truncate ${isActive
+                            ? 'bg-white text-slate-950 font-black shadow-md border-2 border-slate-400 z-20 ring-2 ring-slate-400/20'
+                            : 'bg-slate-200/90 hover:bg-white text-slate-800 hover:text-slate-950 font-extrabold border-2 border-slate-300 shadow-xs'
+                            }`}
                         >
                           <i className={`${tab.icon} text-[10px] sm:text-xs shrink-0 ${isActive ? 'text-[#eb4e52]' : 'text-slate-600'}`} />
                           <span className="hidden sm:inline truncate">{tab.label}</span>
@@ -746,32 +748,37 @@ export default function HeroSection() {
                   )}
                 </div>
 
-                {/* ── Right Column: Separate Search Button in that same line ── */}
-                <button
-                  type="button"
-                  onClick={handleSearchSubmit}
-                  className="shrink-0 h-[48px] sm:h-[54px] bg-[#eb4e52] hover:bg-[#d94145] text-white font-extrabold px-4 sm:px-9 text-xs sm:text-sm md:text-base rounded-xl sm:rounded-2xl border-2 border-red-600/90 shadow-[0_15px_35px_-10px_rgba(235,78,82,0.45)] hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95 z-30"
-                >
-                  <i className="fa-solid fa-magnifying-glass text-xs sm:text-sm" />
-                  <span>Search</span>
-                </button>
-              </div>
 
-              {/* Trending Section */}
-              <div className="mt-5 flex items-center justify-center gap-2 overflow-x-auto scrollbar-hide py-1">
-                <span className="rounded-full bg-slate-900 text-slate-100 px-3.5 py-1.5 text-xs font-black shadow-sm border border-slate-800 flex items-center gap-1.5 shrink-0">
-                  <i className="fa-solid fa-fire text-[#eb4e52] text-xs" /> TRENDING:
-                </span>
-                {POPULAR_CHIPS.map((chip, idx) => (
+                  {/* Trending Section (Mathematically aligned directly under the search input box) */}
+                  <div className="mt-2 sm:mt-2.5 w-full flex items-center justify-between gap-1 sm:gap-2 overflow-x-auto scrollbar-hide py-0.5 sm:py-1">
+                    <span className="rounded-full bg-slate-900 text-slate-100 px-2.5 sm:px-3 py-1 text-[10px] sm:text-xs font-black shadow-xs border border-slate-800 flex items-center gap-1.5 shrink-0 whitespace-nowrap">
+                      <i className="fa-solid fa-fire text-[#eb4e52] text-[10px] sm:text-xs" /> TRENDING:
+                    </span>
+                    {POPULAR_CHIPS.map((chip, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => handleChipClick(chip)}
+                        className="shrink-0 rounded-full bg-slate-100 hover:bg-white text-slate-800 hover:text-brand-blue px-2 sm:px-2.5 py-1 text-[11px] sm:text-xs font-bold shadow-xs border-2 border-slate-300 hover:border-brand-blue transition-all hover:scale-105 active:scale-95 cursor-pointer whitespace-nowrap"
+                      >
+                        {chip.label || chip}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* ── Right Column: Separate Search Button aligned directly with search input box ── */}
+                <div className="flex flex-col shrink-0">
+                  <div className="h-10 sm:h-11 mb-2 sm:mb-2.5" aria-hidden="true" />
                   <button
-                    key={idx}
                     type="button"
-                    onClick={() => handleChipClick(chip)}
-                    className="shrink-0 rounded-full bg-slate-100 hover:bg-white text-slate-800 hover:text-brand-blue px-4 py-1.5 text-xs font-bold shadow-xs border-2 border-slate-300 hover:border-brand-blue transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                    onClick={handleSearchSubmit}
+                    className="shrink-0 h-[48px] sm:h-[54px] bg-[#eb4e52] hover:bg-[#d94145] text-white font-extrabold px-4 sm:px-9 text-xs sm:text-sm md:text-base rounded-xl sm:rounded-2xl border-2 border-red-600/90 shadow-[0_15px_35px_-10px_rgba(235,78,82,0.45)] hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95 z-30"
                   >
-                    {chip.label || chip}
+                    <i className="fa-solid fa-magnifying-glass text-xs sm:text-sm" />
+                    <span>Search</span>
                   </button>
-                ))}
+                </div>
               </div>
             </div>
           </div>
@@ -783,9 +790,8 @@ export default function HeroSection() {
                 key={s.id}
                 type="button"
                 onClick={() => setCurrent(i)}
-                className={`h-1.5 rounded-full transition-all duration-300 ${
-                  i === current ? 'w-5 bg-white' : 'w-1.5 bg-slate-500 hover:bg-slate-400'
-                }`}
+                className={`h-1.5 rounded-full transition-all duration-300 ${i === current ? 'w-5 bg-white' : 'w-1.5 bg-slate-500 hover:bg-slate-400'
+                  }`}
                 aria-label={`Slide ${i + 1}`}
               />
             ))}
