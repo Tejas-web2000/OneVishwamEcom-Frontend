@@ -152,17 +152,17 @@ export default function TopNotificationBar({ isScrolled }) {
       className={`w-full bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 text-white select-none overflow-hidden transition-all duration-300 ease-in-out pointer-events-auto border-b border-indigo-500/20 shadow-md relative z-10 ${
         isScrolled
           ? 'h-0 opacity-0 -translate-y-full py-0 border-b-0 pointer-events-none'
-          : 'py-2.5 sm:py-3 min-h-[44px] sm:min-h-[48px] opacity-100 translate-y-0'
+          : 'py-2 sm:py-2.5 min-h-[38px] sm:min-h-[44px] opacity-100 translate-y-0'
       }`}
     >
       {/* Top luminous accent shimmer line */}
       <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-amber-400 to-transparent opacity-75" />
 
-      <div className="max-w-7xl mx-auto h-full px-4 sm:px-6 flex items-center justify-center text-xs sm:text-sm">
+      <div className="max-w-7xl mx-auto h-full px-2.5 sm:px-6 flex items-center justify-center text-xs sm:text-sm">
         {/* Center Notification Content with Smooth Fade/Slide Transition */}
-        <div className="flex items-center justify-center min-w-0 overflow-hidden">
+        <div className="flex items-center justify-center w-full min-w-0 overflow-hidden">
           <div
-            className={`flex items-center justify-center flex-wrap sm:flex-nowrap gap-2 sm:gap-3.5 transition-all duration-700 ease-in-out transform ${
+            className={`flex items-center justify-center flex-nowrap gap-1.5 sm:gap-3 w-full max-w-4xl transition-all duration-700 ease-in-out transform ${
               fadeState === 'in'
                 ? 'opacity-100 translate-y-0 filter blur-0 scale-100'
                 : 'opacity-0 -translate-y-2 filter blur-xs scale-[0.98]'
@@ -170,14 +170,14 @@ export default function TopNotificationBar({ isScrolled }) {
           >
             {/* Highlighted Pill Badge */}
             <span
-              className={`shrink-0 text-[10px] sm:text-xs font-black uppercase tracking-wider px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full shadow-sm flex items-center gap-1.5 ${typeCfg.badge}`}
+              className={`shrink-0 text-[9px] sm:text-xs font-black uppercase tracking-normal sm:tracking-wider px-2 sm:px-2.5 py-0.5 rounded-full shadow-sm flex items-center gap-1 sm:gap-1.5 ${typeCfg.badge}`}
             >
-              <i className={`${typeCfg.icon} text-[10px] sm:text-xs animate-pulse`} />
+              <i className={`${typeCfg.icon} text-[9px] sm:text-xs animate-pulse`} />
               <span>{currentItem.badgeText || (currentItem.type === 'offer' ? 'OFFER' : 'UPDATE')}</span>
             </span>
 
             {/* Notification Text */}
-            <p className="text-xs sm:text-sm font-semibold text-slate-100 truncate max-w-[280px] sm:max-w-xl md:max-w-2xl lg:max-w-3xl tracking-wide">
+            <p className="flex-1 min-w-0 text-[11px] sm:text-xs md:text-sm font-semibold text-slate-100 truncate tracking-tight sm:tracking-wide text-left sm:text-center">
               {currentItem.message}
             </p>
 
@@ -185,10 +185,10 @@ export default function TopNotificationBar({ isScrolled }) {
             {currentItem.link && (
               <Link
                 to={currentItem.link}
-                className="shrink-0 inline-flex items-center gap-1.5 px-3 py-0.5 sm:py-1 text-xs font-bold text-slate-950 bg-gradient-to-r from-amber-400 to-amber-300 hover:from-amber-300 hover:to-amber-200 rounded-full shadow-xs hover:shadow-md transition-all duration-200 hover:scale-105 active:scale-95 ml-1"
+                className="shrink-0 inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-0.5 sm:py-1 text-[10px] sm:text-xs font-bold text-slate-950 bg-gradient-to-r from-amber-400 to-amber-300 hover:from-amber-300 hover:to-amber-200 rounded-full shadow-xs hover:shadow-md transition-all duration-200 hover:scale-105 active:scale-95 ml-0.5 sm:ml-1"
               >
                 <span>View</span>
-                <i className="fa-solid fa-arrow-right text-[10px]" />
+                <i className="fa-solid fa-arrow-right text-[9px] sm:text-[10px]" />
               </Link>
             )}
           </div>

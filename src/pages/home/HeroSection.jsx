@@ -83,7 +83,7 @@ const SEARCH_TABS = [
   {
     id: 'properties',
     label: 'Properties',
-    shortLabel: 'Properties',
+    shortLabel: 'Homes',
     icon: 'fa-solid fa-house-chimney',
     route: '/categories/properties',
     placeholder: 'Search flats, plots, villas in Bengaluru...',
@@ -99,7 +99,7 @@ const SEARCH_TABS = [
   {
     id: 'consumer-electronics',
     label: 'Electronics',
-    shortLabel: 'Electronics',
+    shortLabel: 'Gadgets',
     icon: 'fa-solid fa-tv',
     route: '/categories/consumer-electronics',
     placeholder: 'Search TVs, ACs, double door refrigerators, appliances...',
@@ -478,24 +478,24 @@ export default function HeroSection() {
           </div>
 
           {/* 4 Category Cards Grid with Lineal Color Vector Icons */}
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
             {FIVE_CATEGORIES.map((item) => {
               const IconComponent = item.Icon;
               return (
                 <Link
                   key={item.id}
                   to={item.link}
-                  className="group bg-white hover:bg-slate-50 rounded-2xl py-3.5 sm:py-4 px-3.5 sm:px-4.5 border-2 border-slate-300/90 hover:border-brand-blue shadow-2xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-3 sm:gap-3.5 cursor-pointer min-h-[72px] sm:min-h-[78px]"
+                  className="group bg-white hover:bg-slate-50 rounded-xl sm:rounded-2xl py-2.5 sm:py-4 px-2.5 sm:px-4.5 border-2 border-slate-300/90 hover:border-brand-blue shadow-2xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-2 sm:gap-3.5 cursor-pointer min-h-[64px] sm:min-h-[78px]"
                 >
-                  <div className="flex items-center gap-3 sm:gap-3.5 min-w-0">
+                  <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0 w-full">
                     {/* Lineal Illustrated Icon Container (Borderless, Larger Size) */}
-                    <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl ${item.bgGlow} p-2 flex items-center justify-center shadow-xs group-hover:scale-108 transition-all duration-300 shrink-0`}>
-                      <IconComponent className="w-9 h-9 sm:w-10 sm:h-10 object-contain" />
+                    <div className={`w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl ${item.bgGlow} p-2 flex items-center justify-center shadow-xs group-hover:scale-108 transition-all duration-300 shrink-0`}>
+                      <IconComponent className="w-7 h-7 sm:w-10 sm:h-10 object-contain" />
                     </div>
 
                     {/* Category Title */}
                     <div className="min-w-0">
-                      <h3 className="font-extrabold text-slate-900 group-hover:text-brand-blue text-sm sm:text-base transition-colors leading-snug truncate">
+                      <h3 className="font-extrabold text-slate-900 group-hover:text-brand-blue text-xs sm:text-base transition-colors leading-snug truncate">
                         {item.title}
                       </h3>
                     </div>
@@ -544,7 +544,7 @@ export default function HeroSection() {
         </div>
 
         <section
-          className="relative w-full min-h-[460px] sm:min-h-[510px] md:min-h-[550px] flex flex-col justify-start items-center text-center px-4 sm:px-6 lg:px-8 pt-10 sm:pt-12 md:pt-14 pb-16 sm:pb-20"
+          className="relative w-full min-h-[440px] sm:min-h-[510px] md:min-h-[550px] flex flex-col justify-start items-center text-center px-3 sm:px-6 lg:px-8 pt-6 sm:pt-10 md:pt-14 pb-14 sm:pb-20"
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
           onTouchStart={onTouchStart}
@@ -574,10 +574,10 @@ export default function HeroSection() {
           {/* ── Center Banner Content ── */}
           <div className="relative z-30 max-w-5xl mx-auto w-full pt-1 sm:pt-2">
             {/* Tag / Pill-badge: THE BEST WAY TO */}
-            <div className="inline-flex items-center gap-2 mb-3">
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-900/85 border border-slate-700/90 shadow-md backdrop-blur-xs">
+            <div className="inline-flex items-center gap-2 mb-2.5 sm:mb-3">
+              <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1 sm:py-1.5 rounded-full bg-slate-900/85 border border-slate-700/90 shadow-md backdrop-blur-xs">
                 <span className="w-1.5 h-1.5 rounded-full bg-sky-400" />
-                <span className="text-slate-100 text-xs sm:text-[13px] font-black uppercase tracking-[0.2em]">
+                <span className="text-slate-100 text-[10px] sm:text-xs md:text-[13px] font-black uppercase tracking-[0.18em] sm:tracking-[0.2em]">
                   THE BEST WAY TO
                 </span>
                 <span className="w-1.5 h-1.5 rounded-full bg-sky-400" />
@@ -586,7 +586,7 @@ export default function HeroSection() {
 
             {/* Main Headline (Strictly One Line) */}
             <div className="flex flex-col items-center justify-center w-full">
-              <h1 className="text-lg sm:text-2xl md:text-3xl lg:text-4xl xl:text-[42px] font-black text-slate-950 tracking-tight leading-tight text-center drop-shadow-xs whitespace-nowrap">
+              <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-[42px] font-black text-slate-950 tracking-tight leading-tight text-center drop-shadow-xs break-words sm:whitespace-nowrap px-2">
                 {activeSlide.title} in Bengaluru
               </h1>
             </div>
@@ -601,14 +601,14 @@ export default function HeroSection() {
             {/* ═══════════════════════════════════════════════════════════
                 Category Tabs & Search Bar Components
                 ═══════════════════════════════════════════════════════════ */}
-            <div className="mt-6 sm:mt-8 w-full max-w-5xl mx-auto px-1 sm:px-4">
-              <div className="flex flex-row items-start justify-center gap-2 sm:gap-3 w-full">
+            <div className="mt-5 sm:mt-8 w-full max-w-5xl mx-auto px-1 sm:px-4">
+              <div className="flex flex-row items-start justify-center gap-1.5 sm:gap-3 w-full">
                 {/* ── Left Column: 5 Search Tabs on top, Search Input Box directly below, and Trending Chips underneath ──
                     All share the exact same left-to-right boundary and width as the search input box! */}
                 <div className="flex-1 max-w-3xl lg:max-w-4xl min-w-0 flex flex-col">
                   <div ref={searchContainerRef} className="relative w-full flex flex-col z-40">
                   {/* 5 Equivalent Search Tabs */}
-                  <div className="grid grid-cols-5 gap-1.5 sm:gap-2 mb-2 sm:mb-2.5 relative z-20 w-full">
+                  <div className="grid grid-cols-5 gap-1 sm:gap-2 mb-2 sm:mb-2.5 relative z-20 w-full">
                     {SEARCH_TABS.map((tab) => {
                       const isActive = activeCategory === tab.id;
                       return (
@@ -616,21 +616,21 @@ export default function HeroSection() {
                           key={tab.id}
                           type="button"
                           onClick={() => setActiveCategory(tab.id)}
-                          className={`w-full inline-flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3 h-10 sm:h-11 text-[11px] sm:text-xs md:text-sm rounded-xl font-bold transition-all cursor-pointer truncate ${isActive
+                          className={`w-full inline-flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3 h-9 sm:h-11 text-[10px] sm:text-xs md:text-sm rounded-xl font-bold transition-all cursor-pointer truncate ${isActive
                             ? 'bg-white text-slate-950 font-black shadow-md border-2 border-slate-400 z-20 ring-2 ring-slate-400/20'
                             : 'bg-slate-200/90 hover:bg-white text-slate-800 hover:text-slate-950 font-extrabold border-2 border-slate-300 shadow-xs'
                             }`}
                         >
-                          <i className={`${tab.icon} text-[10px] sm:text-xs shrink-0 ${isActive ? 'text-[#eb4e52]' : 'text-slate-600'}`} />
-                          <span className="hidden sm:inline truncate">{tab.label}</span>
-                          <span className="inline sm:hidden truncate">{tab.shortLabel || tab.label}</span>
+                          <i className={`${tab.icon} text-[9px] sm:text-xs shrink-0 ${isActive ? 'text-[#eb4e52]' : 'text-slate-600'}`} />
+                          <span className="hidden md:inline truncate">{tab.label}</span>
+                          <span className="inline md:hidden truncate">{tab.shortLabel || tab.label}</span>
                         </button>
                       );
                     })}
                   </div>
 
                   {/* Distinct Search Input Box (100% width matching the 5 tabs above) */}
-                  <div className="relative w-full flex items-center min-w-0 bg-white rounded-xl sm:rounded-2xl shadow-[0_15px_35px_-10px_rgba(15,23,42,0.25)] border-2 border-slate-400 px-3.5 sm:px-5 h-[48px] sm:h-[54px] z-10">
+                  <div className="relative w-full flex items-center min-w-0 bg-white rounded-xl sm:rounded-2xl shadow-[0_15px_35px_-10px_rgba(15,23,42,0.25)] border-2 border-slate-400 px-3 sm:px-5 h-[44px] sm:h-[54px] z-10">
                     <i className="fa-solid fa-location-dot text-slate-500 text-sm sm:text-base mr-2.5 sm:mr-3 shrink-0" />
                     <input
                       ref={inputRef}
@@ -750,8 +750,8 @@ export default function HeroSection() {
 
 
                   {/* Trending Section (Mathematically aligned directly under the search input box) */}
-                  <div className="mt-2 sm:mt-2.5 w-full flex items-center justify-between gap-1 sm:gap-2 overflow-x-auto scrollbar-hide py-0.5 sm:py-1">
-                    <span className="rounded-full bg-slate-900 text-slate-100 px-2.5 sm:px-3 py-1 text-[10px] sm:text-xs font-black shadow-xs border border-slate-800 flex items-center gap-1.5 shrink-0 whitespace-nowrap">
+                  <div className="mt-2 sm:mt-2.5 w-full flex items-center justify-start sm:justify-between gap-1 sm:gap-2 overflow-x-auto scrollbar-hide py-0.5 sm:py-1 touch-pan-x">
+                    <span className="rounded-full bg-slate-900 text-slate-100 px-2 sm:px-3 py-0.5 sm:py-1 text-[9px] sm:text-xs font-black shadow-xs border border-slate-800 flex items-center gap-1 sm:gap-1.5 shrink-0 whitespace-nowrap">
                       <i className="fa-solid fa-fire text-[#eb4e52] text-[10px] sm:text-xs" /> TRENDING:
                     </span>
                     {POPULAR_CHIPS.map((chip, idx) => (
@@ -759,7 +759,7 @@ export default function HeroSection() {
                         key={idx}
                         type="button"
                         onClick={() => handleChipClick(chip)}
-                        className="shrink-0 rounded-full bg-slate-100 hover:bg-white text-slate-800 hover:text-brand-blue px-2 sm:px-2.5 py-1 text-[11px] sm:text-xs font-bold shadow-xs border-2 border-slate-300 hover:border-brand-blue transition-all hover:scale-105 active:scale-95 cursor-pointer whitespace-nowrap"
+                        className="shrink-0 rounded-full bg-slate-100 hover:bg-white text-slate-800 hover:text-brand-blue px-2 sm:px-2.5 py-0.5 sm:py-1 text-[10px] sm:text-xs font-bold shadow-xs border-2 border-slate-300 hover:border-brand-blue transition-all hover:scale-105 active:scale-95 cursor-pointer whitespace-nowrap"
                       >
                         {chip.label || chip}
                       </button>
@@ -769,11 +769,11 @@ export default function HeroSection() {
 
                 {/* ── Right Column: Separate Search Button aligned directly with search input box ── */}
                 <div className="flex flex-col shrink-0">
-                  <div className="h-10 sm:h-11 mb-2 sm:mb-2.5" aria-hidden="true" />
+                  <div className="h-9 sm:h-11 mb-2 sm:mb-2.5" aria-hidden="true" />
                   <button
                     type="button"
                     onClick={handleSearchSubmit}
-                    className="shrink-0 h-[48px] sm:h-[54px] bg-[#eb4e52] hover:bg-[#d94145] text-white font-extrabold px-4 sm:px-9 text-xs sm:text-sm md:text-base rounded-xl sm:rounded-2xl border-2 border-red-600/90 shadow-[0_15px_35px_-10px_rgba(235,78,82,0.45)] hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95 z-30"
+                    className="shrink-0 h-[44px] sm:h-[54px] bg-[#eb4e52] hover:bg-[#d94145] text-white font-extrabold px-3 sm:px-9 text-xs sm:text-sm md:text-base rounded-xl sm:rounded-2xl border-2 border-red-600/90 shadow-[0_15px_35px_-10px_rgba(235,78,82,0.45)] hover:shadow-lg transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer active:scale-95 z-30"
                   >
                     <i className="fa-solid fa-magnifying-glass text-xs sm:text-sm" />
                     <span>Search</span>
