@@ -78,7 +78,7 @@ const SEARCH_TABS = [
     shortLabel: 'All',
     icon: 'fa-solid fa-shapes',
     route: '/categories',
-    placeholder: 'Search across properties, automobiles, electronics, comfort...',
+    placeholder: 'Search properties, autos, gadgets, comfort...',
   },
   {
     id: 'properties',
@@ -601,184 +601,175 @@ export default function HeroSection() {
             {/* ═══════════════════════════════════════════════════════════
                 Category Tabs & Search Bar Components
                 ═══════════════════════════════════════════════════════════ */}
-            <div className="mt-5 sm:mt-8 w-full max-w-5xl mx-auto px-1 sm:px-4">
-              <div className="flex flex-row items-start justify-center gap-1.5 sm:gap-3 w-full">
-                {/* ── Left Column: 5 Search Tabs on top, Search Input Box directly below, and Trending Chips underneath ──
-                    All share the exact same left-to-right boundary and width as the search input box! */}
-                <div className="flex-1 max-w-3xl lg:max-w-4xl min-w-0 flex flex-col">
-                  <div ref={searchContainerRef} className="relative w-full flex flex-col z-40">
-                  {/* 5 Equivalent Search Tabs */}
-                  <div className="grid grid-cols-5 gap-1 sm:gap-2 mb-2 sm:mb-2.5 relative z-20 w-full">
-                    {SEARCH_TABS.map((tab) => {
-                      const isActive = activeCategory === tab.id;
-                      return (
-                        <button
-                          key={tab.id}
-                          type="button"
-                          onClick={() => setActiveCategory(tab.id)}
-                          className={`w-full inline-flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3 h-9 sm:h-11 text-[10px] sm:text-xs md:text-sm rounded-xl font-bold transition-all cursor-pointer truncate ${isActive
-                            ? 'bg-white text-slate-950 font-black shadow-md border-2 border-slate-400 z-20 ring-2 ring-slate-400/20'
-                            : 'bg-slate-200/90 hover:bg-white text-slate-800 hover:text-slate-950 font-extrabold border-2 border-slate-300 shadow-xs'
-                            }`}
-                        >
-                          <i className={`${tab.icon} text-[9px] sm:text-xs shrink-0 ${isActive ? 'text-[#eb4e52]' : 'text-slate-600'}`} />
-                          <span className="hidden md:inline truncate">{tab.label}</span>
-                          <span className="inline md:hidden truncate">{tab.shortLabel || tab.label}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
+            <div className="mt-5 sm:mt-8 w-full max-w-3xl lg:max-w-4xl mx-auto px-1 sm:px-4 flex flex-col z-40">
+              {/* 1. 5 Equivalent Search Tabs (Spanning full width across the search row) */}
+              <div className="grid grid-cols-5 gap-1 sm:gap-2 mb-2 sm:mb-2.5 relative z-20 w-full">
+                {SEARCH_TABS.map((tab) => {
+                  const isActive = activeCategory === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      onClick={() => setActiveCategory(tab.id)}
+                      className={`w-full inline-flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3 h-9 sm:h-11 text-[10px] sm:text-xs md:text-sm rounded-xl font-bold transition-all cursor-pointer ${isActive
+                        ? 'bg-white text-slate-950 font-black shadow-md border-2 border-slate-400 z-20 ring-2 ring-slate-400/20'
+                        : 'bg-slate-200/90 hover:bg-white text-slate-800 hover:text-slate-950 font-extrabold border-2 border-slate-300 shadow-xs'
+                        }`}
+                    >
+                      <i className={`${tab.icon} text-[9px] sm:text-xs shrink-0 ${isActive ? 'text-[#eb4e52]' : 'text-slate-600'}`} />
+                      <span className="hidden md:inline truncate">{tab.label}</span>
+                      <span className="inline md:hidden whitespace-nowrap">{tab.shortLabel || tab.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
 
-                  {/* Distinct Search Input Box (100% width matching the 5 tabs above) */}
-                  <div className="relative w-full flex items-center min-w-0 bg-white rounded-xl sm:rounded-2xl shadow-[0_15px_35px_-10px_rgba(15,23,42,0.25)] border-2 border-slate-400 px-3 sm:px-5 h-[44px] sm:h-[54px] z-10">
-                    <i className="fa-solid fa-location-dot text-slate-500 text-sm sm:text-base mr-2.5 sm:mr-3 shrink-0" />
-                    <input
-                      ref={inputRef}
-                      type="text"
-                      value={internalQuery}
-                      onChange={(e) => {
-                        setInternalQuery(e.target.value);
-                        setShowSuggestions(true);
+              {/* 2. Unified Search Row: Input Box + Search Button */}
+              <div ref={searchContainerRef} className="relative w-full flex items-center gap-1.5 sm:gap-3 z-30">
+                {/* Distinct Search Input Box */}
+                <div className="relative flex-1 min-w-0 bg-white rounded-xl sm:rounded-2xl shadow-[0_15px_35px_-10px_rgba(15,23,42,0.25)] border-2 border-slate-400 px-3 sm:px-5 h-[44px] sm:h-[54px] flex items-center z-10">
+                  <i className="fa-solid fa-location-dot text-slate-500 text-xs sm:text-base mr-2 sm:mr-3 shrink-0" />
+                  <input
+                    ref={inputRef}
+                    type="text"
+                    value={internalQuery}
+                    onChange={(e) => {
+                      setInternalQuery(e.target.value);
+                      setShowSuggestions(true);
+                    }}
+                    onFocus={() => setShowSuggestions(true)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handleSearchSubmit(e);
+                      if (e.key === 'Escape') setShowSuggestions(false);
+                    }}
+                    placeholder={
+                      activeCategory === 'properties'
+                        ? "Search locality, landmark, project (e.g. Whitefield)..."
+                        : currentTab.placeholder
+                    }
+                    className="w-full border-0 p-0 text-xs sm:text-sm md:text-base font-bold text-slate-950 placeholder:text-slate-500 outline-none bg-transparent"
+                  />
+                  {internalQuery && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setInternalQuery('');
+                        setSuggestions([]);
+                        setAddressSuggestions([]);
                       }}
-                      onFocus={() => setShowSuggestions(true)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') handleSearchSubmit(e);
-                        if (e.key === 'Escape') setShowSuggestions(false);
-                      }}
-                      placeholder={
-                        activeCategory === 'properties'
-                          ? "Search locality, landmark, project or builder (e.g. Banashankari, Whitefield)..."
-                          : currentTab.placeholder
-                      }
-                      className="w-full border-0 p-0 text-xs sm:text-sm md:text-base font-bold text-slate-950 placeholder:text-slate-500 outline-none bg-transparent"
-                    />
-                    {internalQuery && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setInternalQuery('');
-                          setSuggestions([]);
-                          setAddressSuggestions([]);
-                        }}
-                        className="w-5 h-5 rounded-full bg-slate-200 hover:bg-slate-300 flex items-center justify-center text-slate-600 transition-colors shrink-0 ml-2 cursor-pointer"
-                        aria-label="Clear search"
-                      >
-                        <i className="fa-solid fa-xmark text-[10px]" />
-                      </button>
-                    )}
-                  </div>
-
-                  {/* ── CRISP SOLID (NON-BLURRED) LIVE SEARCH DROPDOWN ── */}
-                  {showSuggestions && (internalQuery.trim().length > 0 || suggestions.length > 0) && (
-                    <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-2xl shadow-[0_25px_60px_-15px_rgba(15,23,42,0.40)] border-2 border-slate-400 z-50 overflow-hidden text-left animate-fade-in max-h-[440px] flex flex-col">
-                      {/* Header Bar */}
-                      <div className="flex items-center justify-between px-5 py-2.5 bg-slate-100 border-b-2 border-slate-200 text-xs">
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-slate-900">
-                            {internalQuery ? (
-                              <>Results for &ldquo;<span className="text-[#eb4e52]">{internalQuery}</span>&rdquo;</>
-                            ) : (
-                              'Popular Inventory'
-                            )}
-                          </span>
-                          {isSearching && (
-                            <i className="fa-solid fa-spinner animate-spin text-[#eb4e52] text-xs" />
-                          )}
-                        </div>
-                        <div className="text-[11px] font-extrabold text-slate-600">
-                          {suggestions.length} {suggestions.length === 1 ? 'product' : 'products'}
-                        </div>
-                      </div>
-
-                      {/* Single Clean Full-Width Column: All Products */}
-                      <div className="overflow-y-auto flex-1 divide-y divide-slate-200 bg-white">
-                        {suggestions.length > 0 ? (
-                          suggestions.slice(0, 8).map((item) => {
-                            const categoryName =
-                              item.categoryLabel ||
-                              (item.category ? item.category.charAt(0).toUpperCase() + item.category.slice(1) : '');
-                            const locationName = item.location || item.locality || item.city || '';
-                            const detailLine = [categoryName, locationName].filter(Boolean).join(' · ') || 'Verified Product';
-
-                            return (
-                              <div
-                                key={`${item.category}-${item.id || item._id}`}
-                                onClick={() => handleProductClick(item)}
-                                className="px-5 py-3 hover:bg-slate-100 transition-colors cursor-pointer group"
-                              >
-                                <h4 className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-[#eb4e52] transition-colors truncate">
-                                  {highlightAddress(item.title, internalQuery)}
-                                </h4>
-                                <p className="text-[11px] sm:text-xs text-slate-600 font-medium truncate mt-0.5">
-                                  {detailLine}
-                                </p>
-                              </div>
-                            );
-                          })
-                        ) : !isSearching ? (
-                          <div className="p-6 text-center text-xs text-slate-500 space-y-2">
-                            <i className="fa-solid fa-box-open text-slate-400 text-2xl block" />
-                            <p className="text-sm font-semibold text-slate-800">No products found for &ldquo;{internalQuery}&rdquo;</p>
-                            <button
-                              type="button"
-                              onClick={handleSearchSubmit}
-                              className="text-xs font-bold text-[#eb4e52] hover:underline cursor-pointer"
-                            >
-                              Search all categories →
-                            </button>
-                          </div>
-                        ) : null}
-                      </div>
-
-                      {/* Bottom Global Action Bar */}
-                      <div className="px-5 py-2.5 bg-slate-100 border-t-2 border-slate-200 flex items-center justify-between text-xs">
-                        <span className="text-slate-600 font-medium text-[11px]">
-                          Press <kbd className="px-1.5 py-0.5 bg-white border-2 border-slate-300 rounded font-mono text-[10px] text-slate-800 font-bold">Enter</kbd> to search
-                        </span>
-                        <button
-                          type="button"
-                          onClick={handleSearchSubmit}
-                          className="font-black text-[#eb4e52] hover:text-[#d94145] flex items-center gap-1 cursor-pointer"
-                        >
-                          <span>See full results</span>
-                          <i className="fa-solid fa-arrow-right text-[10px]" />
-                        </button>
-                      </div>
-                    </div>
+                      className="w-5 h-5 rounded-full bg-slate-200 hover:bg-slate-300 flex items-center justify-center text-slate-600 transition-colors shrink-0 ml-1.5 sm:ml-2 cursor-pointer"
+                      aria-label="Clear search"
+                    >
+                      <i className="fa-solid fa-xmark text-[10px]" />
+                    </button>
                   )}
                 </div>
 
+                {/* Search Button */}
+                <button
+                  type="button"
+                  onClick={handleSearchSubmit}
+                  className="shrink-0 h-[44px] sm:h-[54px] bg-[#eb4e52] hover:bg-[#d94145] text-white font-extrabold px-3.5 sm:px-9 text-xs sm:text-sm md:text-base rounded-xl sm:rounded-2xl border-2 border-red-600/90 shadow-[0_15px_35px_-10px_rgba(235,78,82,0.45)] hover:shadow-lg transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer active:scale-95 z-30"
+                >
+                  <i className="fa-solid fa-magnifying-glass text-xs sm:text-sm" />
+                  <span>Search</span>
+                </button>
 
-                  {/* Trending Section (Mathematically aligned directly under the search input box) */}
-                  <div className="mt-2 sm:mt-2.5 w-full flex items-center justify-start sm:justify-between gap-1 sm:gap-2 overflow-x-auto scrollbar-hide py-0.5 sm:py-1 touch-pan-x">
-                    <span className="rounded-full bg-slate-900 text-slate-100 px-2 sm:px-3 py-0.5 sm:py-1 text-[9px] sm:text-xs font-black shadow-xs border border-slate-800 flex items-center gap-1 sm:gap-1.5 shrink-0 whitespace-nowrap">
-                      <i className="fa-solid fa-fire text-[#eb4e52] text-[10px] sm:text-xs" /> TRENDING:
-                    </span>
-                    {POPULAR_CHIPS.map((chip, idx) => (
+                {/* ── CRISP SOLID (NON-BLURRED) LIVE SEARCH DROPDOWN ── */}
+                {showSuggestions && (internalQuery.trim().length > 0 || suggestions.length > 0) && (
+                  <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-2xl shadow-[0_25px_60px_-15px_rgba(15,23,42,0.40)] border-2 border-slate-400 z-50 overflow-hidden text-left animate-fade-in max-h-[440px] flex flex-col">
+                    {/* Header Bar */}
+                    <div className="flex items-center justify-between px-5 py-2.5 bg-slate-100 border-b-2 border-slate-200 text-xs">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-slate-900">
+                          {internalQuery ? (
+                            <>Results for &ldquo;<span className="text-[#eb4e52]">{internalQuery}</span>&rdquo;</>
+                          ) : (
+                            'Popular Inventory'
+                          )}
+                        </span>
+                        {isSearching && (
+                          <i className="fa-solid fa-spinner animate-spin text-[#eb4e52] text-xs" />
+                        )}
+                      </div>
+                      <div className="text-[11px] font-extrabold text-slate-600">
+                        {suggestions.length} {suggestions.length === 1 ? 'product' : 'products'}
+                      </div>
+                    </div>
+
+                    {/* Single Clean Full-Width Column: All Products */}
+                    <div className="overflow-y-auto flex-1 divide-y divide-slate-200 bg-white">
+                      {suggestions.length > 0 ? (
+                        suggestions.slice(0, 8).map((item) => {
+                          const categoryName =
+                            item.categoryLabel ||
+                            (item.category ? item.category.charAt(0).toUpperCase() + item.category.slice(1) : '');
+                          const locationName = item.location || item.locality || item.city || '';
+                          const detailLine = [categoryName, locationName].filter(Boolean).join(' · ') || 'Verified Product';
+
+                          return (
+                            <div
+                              key={`${item.category}-${item.id || item._id}`}
+                              onClick={() => handleProductClick(item)}
+                              className="px-5 py-3 hover:bg-slate-100 transition-colors cursor-pointer group"
+                            >
+                              <h4 className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-[#eb4e52] transition-colors truncate">
+                                {highlightAddress(item.title, internalQuery)}
+                              </h4>
+                              <p className="text-[11px] sm:text-xs text-slate-600 font-medium truncate mt-0.5">
+                                {detailLine}
+                              </p>
+                            </div>
+                          );
+                        })
+                      ) : !isSearching ? (
+                        <div className="p-6 text-center text-xs text-slate-500 space-y-2">
+                          <i className="fa-solid fa-box-open text-slate-400 text-2xl block" />
+                          <p className="text-sm font-semibold text-slate-800">No products found for &ldquo;{internalQuery}&rdquo;</p>
+                          <button
+                            type="button"
+                            onClick={handleSearchSubmit}
+                            className="text-xs font-bold text-[#eb4e52] hover:underline cursor-pointer"
+                          >
+                            Search all categories →
+                          </button>
+                        </div>
+                      ) : null}
+                    </div>
+
+                    {/* Bottom Global Action Bar */}
+                    <div className="px-5 py-2.5 bg-slate-100 border-t-2 border-slate-200 flex items-center justify-between text-xs">
+                      <span className="text-slate-600 font-medium text-[11px]">
+                        Press <kbd className="px-1.5 py-0.5 bg-white border-2 border-slate-300 rounded font-mono text-[10px] text-slate-800 font-bold">Enter</kbd> to search
+                      </span>
                       <button
-                        key={idx}
                         type="button"
-                        onClick={() => handleChipClick(chip)}
-                        className="shrink-0 rounded-full bg-slate-100 hover:bg-white text-slate-800 hover:text-brand-blue px-2 sm:px-2.5 py-0.5 sm:py-1 text-[10px] sm:text-xs font-bold shadow-xs border-2 border-slate-300 hover:border-brand-blue transition-all hover:scale-105 active:scale-95 cursor-pointer whitespace-nowrap"
+                        onClick={handleSearchSubmit}
+                        className="font-black text-[#eb4e52] hover:text-[#d94145] flex items-center gap-1 cursor-pointer"
                       >
-                        {chip.label || chip}
+                        <span>See full results</span>
+                        <i className="fa-solid fa-arrow-right text-[10px]" />
                       </button>
-                    ))}
+                    </div>
                   </div>
-                </div>
+                )}
+              </div>
 
-                {/* ── Right Column: Separate Search Button aligned directly with search input box ── */}
-                <div className="flex flex-col shrink-0">
-                  <div className="h-9 sm:h-11 mb-2 sm:mb-2.5" aria-hidden="true" />
+              {/* 3. Trending Section (Full width matching tabs & search bar above) */}
+              <div className="mt-2 sm:mt-2.5 w-full flex items-center justify-start sm:justify-between gap-1 sm:gap-2 overflow-x-auto scrollbar-hide py-0.5 sm:py-1 touch-pan-x">
+                <span className="rounded-full bg-slate-900 text-slate-100 px-2 sm:px-3 py-0.5 sm:py-1 text-[9px] sm:text-xs font-black shadow-xs border border-slate-800 flex items-center gap-1 sm:gap-1.5 shrink-0 whitespace-nowrap">
+                  <i className="fa-solid fa-fire text-[#eb4e52] text-[9px] sm:text-xs" /> TRENDING:
+                </span>
+                {POPULAR_CHIPS.map((chip, idx) => (
                   <button
+                    key={idx}
                     type="button"
-                    onClick={handleSearchSubmit}
-                    className="shrink-0 h-[44px] sm:h-[54px] bg-[#eb4e52] hover:bg-[#d94145] text-white font-extrabold px-3 sm:px-9 text-xs sm:text-sm md:text-base rounded-xl sm:rounded-2xl border-2 border-red-600/90 shadow-[0_15px_35px_-10px_rgba(235,78,82,0.45)] hover:shadow-lg transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer active:scale-95 z-30"
+                    onClick={() => handleChipClick(chip)}
+                    className="shrink-0 rounded-full bg-slate-100 hover:bg-white text-slate-800 hover:text-brand-blue px-2 sm:px-2.5 py-0.5 sm:py-1 text-[10px] sm:text-xs font-bold shadow-xs border-2 border-slate-300 hover:border-brand-blue transition-all hover:scale-105 active:scale-95 cursor-pointer whitespace-nowrap"
                   >
-                    <i className="fa-solid fa-magnifying-glass text-xs sm:text-sm" />
-                    <span>Search</span>
+                    {chip.label || chip}
                   </button>
-                </div>
+                ))}
               </div>
             </div>
           </div>
