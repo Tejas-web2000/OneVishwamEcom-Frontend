@@ -168,6 +168,7 @@ function Navbar() {
       const result = await detectCurrentLocation();
       if (result) {
         selectArea(result.cityId, result.area);
+        setDetectStatus('idle');
         close();
       } else {
         setDetectStatus('unsupported');
