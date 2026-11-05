@@ -65,13 +65,13 @@ function CareersSidebar() {
 
         <div className="mt-4">
           <a
-            href="mailto:onevishwamecom@gmail.com"
+            href="mailto:ceo@onevishwam.com"
             className="flex items-center gap-3 p-3 rounded-xl bg-white border border-gray-200/70 hover:border-brand-blue/30 hover:shadow-xs transition-all text-brand-charcoal"
           >
             <i className="fa-solid fa-envelope text-brand-blue text-sm" />
             <div className="min-w-0 flex-1">
               <p className="text-[10px] uppercase font-semibold text-gray-400">Email us</p>
-              <p className="text-xs sm:text-sm font-semibold text-brand-blue truncate">onevishwamecom@gmail.com</p>
+              <p className="text-xs sm:text-sm font-semibold text-brand-blue truncate">ceo@onevishwam.com</p>
             </div>
           </a>
         </div>

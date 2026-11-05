@@ -15,18 +15,50 @@
     <link rel="icon" type="image/png" href="/favicon.png" />
     <title>OneVishwam</title>
 
-    <!-- Meta Pixel Code -->
+    <!-- Meta Pixel Code (Offline-Resilient) -->
     <script>
-      !function(f,b,e,v,n,t,s)
-      {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-      n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-      if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-      n.queue=[];t=b.createElement(e);t.async=!0;
-      t.src=v;s=b.getElementsByTagName(e)[0];
-      s.parentNode.insertBefore(t,s)}(window, document,'script',
-      'https://connect.facebook.net/en_US/fbevents.js');
-      fbq('init', '2982697902071404');
-      fbq('track', 'PageView');
+      (function() {
+        function initMetaPixel() {
+          if (window.fbq) return;
+          var n = window.fbq = function() {
+            if (typeof navigator !== 'undefined' && !navigator.onLine) return;
+            try {
+              n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
+            } catch (e) {}
+          };
+          if (!window._fbq) window._fbq = n;
+          n.push = n; n.loaded = !0; n.version = '2.0'; n.queue = [];
+
+          function loadScript() {
+            if (typeof navigator !== 'undefined' && !navigator.onLine) {
+              window.addEventListener('online', loadScript, { once: true });
+              return;
+            }
+            try {
+              var t = document.createElement('script');
+              t.async = !0;
+              t.src = 'https://connect.facebook.net/en_US/fbevents.js';
+              t.onerror = function() {}; // Silently ignore if blocked by ad-blocker or offline
+              var s = document.getElementsByTagName('script')[0];
+              if (s && s.parentNode) {
+                s.parentNode.insertBefore(t, s);
+              } else {
+                document.head.appendChild(t);
+              }
+              window.fbq('init', '2982697902071404');
+              window.fbq('track', 'PageView');
+            } catch (e) {}
+          }
+
+          loadScript();
+        }
+
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', initMetaPixel);
+        } else {
+          initMetaPixel();
+        }
+      })();
     </script>
     <!-- End Meta Pixel Code -->
     <!-- Lottie Player CDN Scripts -->

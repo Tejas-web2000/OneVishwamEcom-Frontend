@@ -94,8 +94,10 @@ function RouterSyncEffect() {
       });
     }
 
-    if (typeof window.fbq === 'function') {
-      window.fbq('track', 'PageView');
+    if (typeof window.fbq === 'function' && (typeof navigator === 'undefined' || navigator.onLine)) {
+      try {
+        window.fbq('track', 'PageView');
+      } catch (e) {}
     }
 
     // Auto-capture user sector interest on route change
